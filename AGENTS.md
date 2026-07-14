@@ -1,123 +1,57 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+## Repository Purpose and Layout
 
-This repository is an agent-skill collection for OpenAI Build Week 2026. The root `README.md` provides the project entry point. Agent configuration lives under `.agents/`:
+This repository maintains reusable Codex agents and skills for OpenAI Build Week 2026. Keep work in the narrowest relevant location:
 
-- `.agents/skills/<skill-name>/` contains reusable skills. Each skill requires `SKILL.md`; use `references/` for on-demand background material and `evals/evals.json` for realistic evaluation prompts.
-- `.agents/agents/` contains role-specific agent instructions.
-- `.agents/commands/kiro/` contains Kiro workflow commands.
-- `.agents/rules/` contains shared operating rules.
+- `.agents/skills/<name>/` — reusable workflows. A skill needs `SKILL.md`; add `references/` for optional source material and `evals/evals.json` for representative prompts.
+- `.agents/agents/` — role-specific agent instructions.
+- `.agents/rules/` — shared, always-applicable operating rules.
+- `.codex/agents/` — Codex agent definitions, such as `spec-reviewer.toml`.
+- `.kiro/` — created only when a project uses spec-driven delivery: `steering/` holds durable project guidance and `specs/<feature>/` holds feature artifacts.
 
-Keep new content in the narrowest applicable directory. For example, add Build Week guidance to `.agents/skills/openai-build-week-2026/`, not to the root README.
+Do not document or invoke a directory, command, skill, or runtime that is absent from the repository or current environment.
 
-## Build, Test, and Development Commands
+## Working Behavior
 
-There is no application runtime, package manifest, or CI workflow currently committed. Validate documentation and skill changes with lightweight repository checks:
+Start with the user-visible outcome, relevant evidence, hard constraints, and completion bar. Inspect existing files before proposing changes; preserve user work and state assumptions when evidence is incomplete. Prefer the smallest useful set of files and tools, then validate the requested result before reporting completion.
+
+- **Answer, review, diagnose, or plan:** inspect and report; do not edit unless requested.
+- **Build, change, or fix:** make in-scope local edits and run safe, relevant validation.
+- **External writes, destructive actions, purchases, or material scope expansion:** ask for confirmation first.
+
+Use an available skill when its description matches the task, read its `SKILL.md` before acting, and say briefly which skill is being used and why. Delegate only independent, bounded work that benefits from a separate context; otherwise work directly.
+
+## GPT-5.6 Guidance
+
+Follow the current official [GPT-5.6 prompt guidance](https://developers.openai.com/api/docs/guides/prompt-guidance-gpt-5p6) and [model guidance](https://developers.openai.com/api/docs/guides/latest-model?model=gpt-5.6). Before changing a model, reasoning setting, developer prompt, tool contract, or agent configuration, use the `openai-docs` skill to verify the live official guidance.
+
+Keep instructions lean and non-contradictory. State outcomes, invariants, available evidence, required output, and stopping conditions once; let GPT-5.6 choose the efficient path. Use `high` reasoning for complex design/review only when it has a measured benefit; compare with one lower setting on representative tasks. Do not claim tests, source facts, or integration results without evidence.
+
+## Spec-Driven Development (cc-sdd / Kiro)
+
+Use the Kiro skills only when the user requests spec-driven work or when a non-trivial feature needs requirements, design, task boundaries, and implementation traceability. They are skills—not shell commands—and are available under `.agents/skills/kiro-*`.
+
+For a new feature, use this progression as appropriate:
+
+1. `$kiro-discovery` for ambiguous or multi-feature work; maintain `.kiro/steering/roadmap.md` when it exists.
+2. `$kiro-spec-init`, `$kiro-spec-requirements`, `$kiro-spec-design`, then `$kiro-spec-tasks` for a reviewable feature specification.
+3. Use `$kiro-validate-gap` or `$kiro-validate-design` when existing-code fit or design quality is uncertain.
+4. Use `$kiro-impl` only after requirements, design, and tasks are approved; finish with `$kiro-validate-impl` and fresh evidence.
+
+Use `.kiro/steering/` for stable project decisions and a feature’s spec directory for feature-specific decisions. Read only the steering/spec files needed for the current task. Follow `spec.json.language` for generated specification artifacts; otherwise respond in the user’s language.
+
+## Validation, Style, and Git
+
+Write clear Markdown with ATX headings and language-tagged fenced code blocks. Use lowercase kebab-case skill directories, such as `openai-build-week-2026`, and valid YAML front matter with `name` and a trigger-focused `description`.
+
+Before committing documentation or skill changes, run:
 
 ```sh
-git diff --check                 # Detect whitespace errors
-git status --short               # Review changed files
-python3 -m scripts.package_skill ../openai-build-week-2026 /tmp
+git diff --check
+git status --short
+# From .agents/skills/skill-creator/:
+python3 -m scripts.package_skill ../<skill-name> /tmp
 ```
 
-Run the packaging command from `.agents/skills/skill-creator/`; it validates the skill before creating a distributable `.skill` archive. Do not invent `npm`, `pnpm`, or test commands until the repository adds them.
-
-## Coding Style & Naming Conventions
-
-Write Markdown in clear, concise English unless a target document requires another language. Use ATX headings (`##`), fenced code blocks with a language tag, and relative paths. Name skill directories in lowercase kebab-case, such as `openai-build-week-2026`. Keep `SKILL.md` front matter valid YAML with `name` and an explicit trigger-focused `description`. Put volatile external facts in dated reference files and point readers to the authoritative source.
-
-## Testing Guidelines
-
-For every new or materially changed skill, add 2–3 realistic prompts to `evals/evals.json`. Cover the main workflow, a compliance/review case, and an edge case. Package validation and `git diff --check` are the minimum pre-commit checks; manually inspect that the archive contains `SKILL.md` and needed references but excludes evaluation fixtures.
-
-## Commit & Pull Request Guidelines
-
-Existing history uses short imperative subjects (for example, `add skill`). Follow that pattern: `add build-week review checklist` or `fix skill packaging instructions`. Keep commits scoped to one skill or documentation concern. Pull requests should state the user-facing change, list validation performed, link relevant issues, and include screenshots only when visual assets or rendered documentation change. Never commit API keys, session IDs, credentials, or private participant data.
-
-
-# Agentic SDLC and Spec-Driven Development
-
-Kiro-style Spec-Driven Development on an agentic SDLC
-
-## Project Memory
-Project memory keeps persistent guidance (steering, specs notes, component docs) so Codex honors your standards each run. Treat it as the long-lived source of truth for patterns, conventions, and decisions.
-
-- Use `.kiro/steering/` for project-wide policies: architecture principles, naming schemes, security constraints, tech stack decisions, api standards, etc.
-- Use local `AGENTS.md` files for feature or library context (e.g. `src/lib/payments/AGENTS.md`): describe domain assumptions, API contracts, or testing conventions specific to that folder. Codex auto-loads these when working in the matching path.
-- Specs notes stay with each spec (under `.kiro/specs/`) to guide specification-level workflows.
-
-## Project Context
-
-### Paths
-- Steering: `.kiro/steering/`
-- Specs: `.kiro/specs/`
-
-### Steering vs Specification
-
-**Steering** (`.kiro/steering/`) - Guide AI with project-wide rules and context
-**Specs** (`.kiro/specs/`) - Formalize development process for individual features
-
-### Active Specifications
-- Check `.kiro/specs/` for active specifications
-- Use `$kiro-spec-status [feature-name]` to check progress
-
-## Development Guidelines
-- Think in English, generate responses in Japanese. All Markdown content written to project files (e.g., requirements.md, design.md, tasks.md, research.md, validation reports) MUST be written in the target language configured for this specification (see spec.json.language).
-
-## Minimal Workflow
-- Phase 0 (optional): `$kiro-steering`, `$kiro-steering-custom`
-- Discovery: `$kiro-discovery "idea"` — determines action path, writes brief.md + roadmap.md for multi-spec projects
-- Phase 1 (Specification):
-  - Single spec: `$kiro-spec-quick {feature} [--auto]` or step by step:
-    - `$kiro-spec-init "description"`
-    - `$kiro-spec-requirements {feature}`
-    - `$kiro-validate-gap {feature}` (optional: for existing codebase)
-    - `$kiro-spec-design {feature} [-y]`
-    - `$kiro-validate-design {feature}` (optional: design review)
-    - `$kiro-spec-tasks {feature} [-y]`
-  - Multi-spec: `$kiro-spec-batch` — creates all specs from roadmap.md in parallel by dependency wave
-- Phase 2 (Implementation): `$kiro-impl {feature} [tasks]`
-  - Without task numbers: autonomous mode (subagent per task + independent review + final validation)
-  - With task numbers: manual mode (selected tasks in main context, still reviewer-gated before completion)
-  - `$kiro-validate-impl {feature}` (standalone re-validation)
-- Progress check: `$kiro-spec-status {feature}` (use anytime)
-
-## Skills Structure
-Skills are located in `.agents/skills/kiro-*/SKILL.md`
-- Each skill is a directory with a `SKILL.md` file
-- Use `/skills` to inspect currently available skills
-- Invoke a skill directly with `$kiro-<skill-name>`
-- `kiro-review` — task-local adversarial review protocol used by reviewer subagents
-- `kiro-debug` — root-cause-first debug protocol used by debugger subagents
-- `kiro-verify-completion` — fresh-evidence gate before success or completion claims
-- **If there is even a 1% chance a skill applies to the current task, invoke it.** Do not skip skills because the task seems simple.
-
-## Collaboration Modes (Optional)
-Enable collaboration modes in `~/.codex/config.toml` to let Codex choose focused execution modes for longer tasks:
-
-```toml
-[features]
-collaboration_modes = true
-```
-
-## Multi-Agent (Experimental)
-If multi-agent is available, use it to parallelize independent research and validation within skills. Enable in `~/.codex/config.toml`:
-
-```toml
-[features]
-multi_agent = true
-```
-
-Skills with "Parallel Research" sections list independent work items that benefit from sub-agent spawning when this feature is active.
-
-## Development Rules
-- 3-phase approval workflow: Requirements → Design → Tasks → Implementation
-- Human review required each phase; use `-y` only for intentional fast-track
-- Keep steering current and verify alignment with `$kiro-spec-status`
-- Follow the user's instructions precisely, and within that scope act autonomously: gather the necessary context and complete the requested work end-to-end in this run, asking questions only when essential information is missing or the instructions are critically ambiguous.
-
-## Steering Configuration
-- Load entire `.kiro/steering/` as project memory
-- Default files: `product.md`, `tech.md`, `structure.md`
-- Custom files are supported (managed via `$kiro-steering-custom`)
+Add 2–3 realistic eval prompts for new or materially changed skills. Use concise imperative commit subjects, such as `add spec reviewer` or `fix build-week checklist`. Never commit credentials, API keys, private session IDs, or participant data.
