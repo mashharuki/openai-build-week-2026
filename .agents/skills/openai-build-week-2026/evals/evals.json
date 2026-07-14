@@ -1,0 +1,23 @@
+{
+  "skill_name": "openai-build-week-2026",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "We have 6 days for OpenAI Build Week. I want to build an AI tool that helps small online shops reply to customer questions. Pick the strongest track, define a winning vertical slice, PRD, evaluation plan, and what evidence we need for the submission.",
+      "expected_output": "A track-specific brief, four-criterion scorecard, scoped PRD, evaluation plan, build order, and official-evidence checklist rather than generic idea suggestions.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Review this Build Week Dev Tools repository for submission readiness. It is a local-first CI failure triage agent using GPT-5.6, with a public GitHub repo and a deployed demo. We have a README but no demo video yet. Tell us what will fail judging and draft the missing README sections and demo plan.",
+      "expected_output": "A viability and judging-criterion review, prioritized issues, explicit video/session-ID/test-path compliance gaps, and paste-ready README/demo materials with placeholders for unverified evidence.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "Our education app existed before July 13. During Build Week we added a GPT-5.6 feedback workflow with Codex. Create the documentation and final Devpost checklist that will clearly separate old work from new eligible work.",
+      "expected_output": "A dated evidence plan, HACKATHON_CHANGES structure, Built-with-Codex narrative, judge test card, and final readiness table that handles pre-existing-project requirements.",
+      "files": []
+    }
+  ]
+}
