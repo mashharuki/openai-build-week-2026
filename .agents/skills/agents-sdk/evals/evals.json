@@ -1,0 +1,17 @@
+{
+  "skill_name": "agents-sdk",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Build a minimal Python agent that classifies customer-support tickets and returns a structured priority and summary. Include a local smoke command.",
+      "expected_output": "A docs-aligned single-agent implementation, explicit input/output contract, dependency setup, and verified local smoke path.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Add a focused local evaluation suite for our existing Agents SDK research assistant. It must cover missing evidence and required approval behavior.",
+      "expected_output": "An eval harness that exercises the real agent path with behavioral cases, state isolation, and pass/fail output.",
+      "files": []
+    }
+  ]
+}

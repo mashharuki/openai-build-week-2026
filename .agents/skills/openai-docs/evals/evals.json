@@ -1,0 +1,17 @@
+{
+  "skill_name": "openai-docs",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "What is the current recommended way to build a ChatGPT app with an MCP server and widget? Cite the official docs.",
+      "expected_output": "A concise, current answer based on fetched official OpenAI documentation with direct citations.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Help me select the current OpenAI model for a coding agent and explain the trade-offs using official guidance.",
+      "expected_output": "A current docs-grounded recommendation that preserves uncertainty where the docs do not establish a fact.",
+      "files": []
+    }
+  ]
+}

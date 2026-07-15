@@ -1,0 +1,17 @@
+{
+  "skill_name": "chatgpt-app-submission",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Generate ChatGPT app submission materials for our public travel-planning app. It has search and save-trip tools, OAuth login, and a React widget.",
+      "expected_output": "Submission-ready app metadata, tool coverage, positive and negative test cases, and explicit privacy/CSP review findings.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Audit our existing Apps SDK app before directory submission, especially its tool wording and handling of user location data.",
+      "expected_output": "A source-backed submission audit that flags sensitive-data, tool-description, and policy gaps with practical remediation steps.",
+      "files": []
+    }
+  ]
+}

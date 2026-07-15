@@ -1,0 +1,17 @@
+{
+  "skill_name": "build-chatgpt-app",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Use $build-chatgpt-app with $openai-docs to scaffold a private ChatGPT app that searches and displays our product catalog with a React widget.",
+      "expected_output": "A docs-first archetype decision, search/fetch tool plan, MCP server and widget scaffold, CSP guidance, and local validation steps.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Review this ChatGPT Apps SDK repository and identify why the widget fails to load after a tool call.",
+      "expected_output": "A repository-contract validation report with concrete MCP resource, metadata, URI, bridge, and CSP findings.",
+      "files": []
+    }
+  ]
+}
