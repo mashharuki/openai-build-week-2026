@@ -69,11 +69,13 @@ export const AssessmentResultSchema = z.object({
   suggestedAction: z.string().trim().min(1).max(500),
 });
 
-export const SaveObservationInputSchema = z.object({
-  chosenAction: z.string().trim().min(1).max(500),
-  dogId: z.string().trim().min(1),
-  observedCues: z.array(z.string().trim().min(1)).min(1).max(10),
-});
+export const SaveObservationInputSchema = z
+  .object({
+    chosenAction: z.string().trim().min(1).max(500),
+    dogId: z.string().trim().min(1),
+    observedCues: z.array(z.string().trim().min(1)).min(1).max(10),
+  })
+  .strict();
 
 export const HistoryComparisonSchema = z.object({
   currentLog: ObservationLogSchema.nullable(),

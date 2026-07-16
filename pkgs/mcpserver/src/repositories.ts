@@ -11,6 +11,10 @@ export type ConversationScope = string & {
 };
 
 export type ProfileDraft = Pick<DogProfile, "name" | "temperamentNote">;
+export type ProfileDeletionHandler = (
+  scope: ConversationScope,
+  dogId: string,
+) => Promise<void>;
 
 export interface ProfileRepositoryDependencies {
   createId: () => string;
@@ -22,6 +26,7 @@ export interface ProfileRepository {
   create(scope: ConversationScope, profile: ProfileDraft): Promise<DogProfile>;
   delete(scope: ConversationScope, input: unknown): Promise<boolean>;
   get(scope: ConversationScope, dogId: string): Promise<DogProfile | null>;
+  registerDeletionHandler(handler: ProfileDeletionHandler): void;
   update(
     scope: ConversationScope,
     dogId: string,
@@ -49,6 +54,8 @@ function parseProfileDraft(profile: ProfileDraft): ProfileDraft {
 export function createProfileRepository(
   dependencies: ProfileRepositoryDependencies,
 ): ProfileRepository {
+  let deletionHandler: ProfileDeletionHandler | undefined;
+
   async function get(
     scope: ConversationScope,
     dogId: string,
@@ -84,11 +91,16 @@ export function createProfileRepository(
         return false;
       }
 
+      await deletionHandler?.(scope, deletion.dogId);
       await dependencies.kv.delete(profileKey(scope, deletion.dogId));
       return true;
     },
 
     get,
+
+    registerDeletionHandler(handler) {
+      deletionHandler = handler;
+    },
 
     async update(scope, dogId, profile) {
       const existing = await get(scope, dogId);
