@@ -3,15 +3,22 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Context } from "hono";
 
 import { createAssessmentService } from "../assessment-service.js";
+import type { AssessmentService } from "../assessment-service.js";
 import { probeAudioEvidence } from "../audio-evidence.js";
 import type { WorkerRuntimeDependencies } from "../env.js";
 import {
+  type HistoryDiff,
   type ObservationLogReader,
   createHistoryDiff,
 } from "../history-diff.js";
 import { createModelAdapter } from "../model.js";
-import { createObservationService } from "../observation-service.js";
 import {
+  type ObservationService,
+  createObservationService,
+} from "../observation-service.js";
+import {
+  type ConversationScope,
+  type ProfileRepository,
   createConversationScope,
   createProfileRepository,
 } from "../repositories.js";
@@ -27,6 +34,38 @@ export interface McpRuntime {
   handleRequest(context: Context): Promise<Response | undefined>;
   isConnected(): boolean;
   sessionId(): string | undefined;
+}
+
+export interface PawLensToolDependencies {
+  assessments: AssessmentService;
+  conversationStable: boolean;
+  history: HistoryDiff;
+  observations: ObservationService;
+  profiles: ProfileRepository;
+  scope: ConversationScope;
+}
+
+export function registerPawLensTools(
+  server: McpServer,
+  dependencies: PawLensToolDependencies,
+): void {
+  registerAnalyzeDogSignal(
+    server,
+    dependencies.assessments,
+    dependencies.scope,
+  );
+  registerGetDogHistory(
+    server,
+    dependencies.history,
+    dependencies.scope,
+    dependencies.conversationStable,
+  );
+  registerManageDogProfile(server, dependencies.profiles, dependencies.scope);
+  registerSaveObservation(
+    server,
+    dependencies.observations,
+    dependencies.scope,
+  );
 }
 
 export function createRuntimeAssessmentService(
@@ -69,15 +108,14 @@ export function createMcpRuntime(
   const history = createHistoryDiff({ observations });
 
   registerHelloWidget(server, dependencies.assets);
-  registerAnalyzeDogSignal(server, assessments, scope);
-  registerGetDogHistory(
-    server,
+  registerPawLensTools(server, {
+    assessments,
+    conversationStable: dependencies.conversationStable ?? true,
     history,
+    observations,
+    profiles,
     scope,
-    dependencies.conversationStable ?? true,
-  );
-  registerManageDogProfile(server, profiles, scope);
-  registerSaveObservation(server, observations, scope);
+  });
 
   return {
     close: () => server.close(),
