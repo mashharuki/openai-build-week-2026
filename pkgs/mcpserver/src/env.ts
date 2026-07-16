@@ -8,6 +8,7 @@ export interface WorkerBindings {
 }
 
 export interface WorkerRuntimeDependencies {
+  audioAvailable?: boolean;
   assets: Fetcher;
   kv: KVNamespace;
   model: ModelGateway;

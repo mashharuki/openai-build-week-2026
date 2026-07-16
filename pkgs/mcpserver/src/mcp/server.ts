@@ -2,11 +2,17 @@ import { StreamableHTTPTransport } from "@hono/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Context } from "hono";
 
+import { createAssessmentService } from "../assessment-service.js";
+import { probeAudioEvidence } from "../audio-evidence.js";
 import type { WorkerRuntimeDependencies } from "../env.js";
+import type { ObservationLogReader } from "../history-diff.js";
+import { createModelAdapter } from "../model.js";
+import { createObservationService } from "../observation-service.js";
 import {
   createConversationScope,
   createProfileRepository,
 } from "../repositories.js";
+import { registerAnalyzeDogSignal } from "./analyze-dog-signal.js";
 import { registerHelloWidget } from "./hello-widget.js";
 import { registerManageDogProfile } from "./profile-management.js";
 
@@ -15,6 +21,17 @@ export interface McpRuntime {
   connect(): Promise<void>;
   handleRequest(context: Context): Promise<Response | undefined>;
   isConnected(): boolean;
+}
+
+export function createRuntimeAssessmentService(
+  dependencies: Pick<WorkerRuntimeDependencies, "audioAvailable" | "model">,
+  observations: ObservationLogReader,
+) {
+  return createAssessmentService({
+    audioCapability: probeAudioEvidence(dependencies.audioAvailable),
+    model: createModelAdapter(dependencies.model),
+    observations,
+  });
 }
 
 export function createMcpRuntime(
@@ -32,8 +49,19 @@ export function createMcpRuntime(
     kv: dependencies.kv,
     now: () => new Date(),
   });
+  const observations = createObservationService({
+    createId: () => crypto.randomUUID(),
+    kv: dependencies.kv,
+    now: () => new Date(),
+    profiles,
+  });
+  const assessments = createRuntimeAssessmentService(
+    dependencies,
+    observations,
+  );
 
   registerHelloWidget(server, dependencies.assets);
+  registerAnalyzeDogSignal(server, assessments, scope);
   registerManageDogProfile(server, profiles, scope);
 
   return {
