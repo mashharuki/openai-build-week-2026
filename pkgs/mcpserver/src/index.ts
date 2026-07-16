@@ -39,16 +39,12 @@ const defaultDependencies: AppDependencies = {
 export function createApp(overrides: Partial<AppDependencies> = {}) {
   const dependencies = { ...defaultDependencies, ...overrides };
   const app = new Hono<{ Bindings: WorkerBindings }>();
-  let runtime: McpRuntime | undefined;
+  const runtimes = new Map<string, McpRuntime>();
 
-  function getRuntime(bindings: WorkerBindings): McpRuntime {
-    if (!runtime) {
-      runtime = dependencies.createMcpRuntime(
-        dependencies.createWorkerDependencies(bindings),
-      );
-    }
-
-    return runtime;
+  function createRuntime(bindings: WorkerBindings): McpRuntime {
+    return dependencies.createMcpRuntime(
+      dependencies.createWorkerDependencies(bindings),
+    );
   }
 
   app.get("/health", (context) =>
@@ -61,7 +57,19 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
   );
 
   app.all("/mcp", async (context) => {
-    const activeRuntime = getRuntime(context.env);
+    const requestedSessionId = context.req.header("mcp-session-id");
+    const activeRuntime = requestedSessionId
+      ? runtimes.get(requestedSessionId)
+      : createRuntime(context.env);
+
+    if (!activeRuntime) {
+      return context.json(
+        {
+          error: "Unknown MCP session.",
+        },
+        404,
+      );
+    }
 
     if (!activeRuntime.isConnected()) {
       await activeRuntime.connect();
@@ -75,13 +83,21 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
         );
       } finally {
         await activeRuntime.close();
-        runtime = undefined;
+        if (requestedSessionId) {
+          runtimes.delete(requestedSessionId);
+        }
       }
     }
 
-    return (
-      (await activeRuntime.handleRequest(context)) ?? context.body(null, 204)
-    );
+    const response =
+      (await activeRuntime.handleRequest(context)) ?? context.body(null, 204);
+    const createdSessionId = activeRuntime.sessionId();
+
+    if (!requestedSessionId && createdSessionId) {
+      runtimes.set(createdSessionId, activeRuntime);
+    }
+
+    return response;
   });
 
   return app;

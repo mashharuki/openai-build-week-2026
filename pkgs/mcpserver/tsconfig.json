@@ -22,6 +22,7 @@
     "test/audio-evidence.test.ts",
     "test/mcp/analyze-dog-signal.test.ts",
     "test/mcp/hello-widget.test.ts",
+    "test/mcp/get-dog-history.test.ts",
     "test/mcp/profile-management.test.ts",
     "test/mcp/runtime-assessment.test.ts",
     "test/mcp/save-observation.test.ts"

@@ -5,7 +5,10 @@ import type { Context } from "hono";
 import { createAssessmentService } from "../assessment-service.js";
 import { probeAudioEvidence } from "../audio-evidence.js";
 import type { WorkerRuntimeDependencies } from "../env.js";
-import type { ObservationLogReader } from "../history-diff.js";
+import {
+  type ObservationLogReader,
+  createHistoryDiff,
+} from "../history-diff.js";
 import { createModelAdapter } from "../model.js";
 import { createObservationService } from "../observation-service.js";
 import {
@@ -13,6 +16,7 @@ import {
   createProfileRepository,
 } from "../repositories.js";
 import { registerAnalyzeDogSignal } from "./analyze-dog-signal.js";
+import { registerGetDogHistory } from "./get-dog-history.js";
 import { registerHelloWidget } from "./hello-widget.js";
 import { registerManageDogProfile } from "./profile-management.js";
 import { registerSaveObservation } from "./save-observation.js";
@@ -22,6 +26,7 @@ export interface McpRuntime {
   connect(): Promise<void>;
   handleRequest(context: Context): Promise<Response | undefined>;
   isConnected(): boolean;
+  sessionId(): string | undefined;
 }
 
 export function createRuntimeAssessmentService(
@@ -42,9 +47,10 @@ export function createMcpRuntime(
     name: "pawlens-mcpserver",
     version: "0.0.0",
   });
-  const transport = new StreamableHTTPTransport();
-
   const scope = createConversationScope();
+  const transport = new StreamableHTTPTransport({
+    sessionIdGenerator: () => scope,
+  });
   const profiles = createProfileRepository({
     createId: () => crypto.randomUUID(),
     kv: dependencies.kv,
@@ -60,9 +66,16 @@ export function createMcpRuntime(
     dependencies,
     observations,
   );
+  const history = createHistoryDiff({ observations });
 
   registerHelloWidget(server, dependencies.assets);
   registerAnalyzeDogSignal(server, assessments, scope);
+  registerGetDogHistory(
+    server,
+    history,
+    scope,
+    dependencies.conversationStable ?? true,
+  );
   registerManageDogProfile(server, profiles, scope);
   registerSaveObservation(server, observations, scope);
 
@@ -71,5 +84,6 @@ export function createMcpRuntime(
     connect: () => server.connect(transport),
     handleRequest: (context) => transport.handleRequest(context),
     isConnected: () => server.isConnected(),
+    sessionId: () => transport.sessionId,
   };
 }

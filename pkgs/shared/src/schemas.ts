@@ -84,6 +84,13 @@ export const HistoryComparisonSchema = z.object({
   summary: z.string().trim().min(1).max(1_000),
 });
 
+export const GetDogHistoryInputSchema = z
+  .object({
+    dogId: z.string().trim().min(1),
+    recentLogs: z.array(ObservationLogSchema),
+  })
+  .strict();
+
 export const DeleteProfileInputSchema = z.object({
   confirmed: z.literal(true),
   dogId: z.string().trim().min(1),

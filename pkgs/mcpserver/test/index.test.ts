@@ -1,15 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    type McpRuntime,
-    type WorkerRuntimeDependencies,
-    createApp,
+  type McpRuntime,
+  type WorkerRuntimeDependencies,
+  createApp,
 } from "../src/index.js";
 
 function createRuntime(): McpRuntime & {
   close: ReturnType<typeof vi.fn>;
   connect: ReturnType<typeof vi.fn>;
   handleRequest: ReturnType<typeof vi.fn>;
+  sessionId: ReturnType<typeof vi.fn>;
 } {
   let connected = false;
 
@@ -24,6 +25,7 @@ function createRuntime(): McpRuntime & {
       async () => new Response("mcp response", { status: 202 }),
     ),
     isConnected: () => connected,
+    sessionId: vi.fn(() => "session-owner"),
   };
 }
 
@@ -47,7 +49,7 @@ describe("createApp", () => {
     });
   });
 
-  it("MCP接続を一度だけ初期化し、DELETE後に閉じる", async () => {
+  it("MCPセッションごとにランタイムを分離し、DELETE後に閉じる", async () => {
     const runtime = createRuntime();
     const runtimeDependencies = {
       assets: {} as Fetcher,
@@ -71,18 +73,52 @@ describe("createApp", () => {
         .status,
     ).toBe(202);
     expect(
-      (await app.request("https://pawlens.example/mcp", { method: "POST" }))
-        .status,
+      (
+        await app.request("https://pawlens.example/mcp", {
+          headers: { "mcp-session-id": "session-owner" },
+          method: "POST",
+        })
+      ).status,
     ).toBe(202);
     expect(runtime.connect).toHaveBeenCalledTimes(1);
     expect(createWorkerDependencies).toHaveBeenCalledTimes(1);
     expect(createMcpRuntime).toHaveBeenCalledWith(runtimeDependencies);
 
     expect(
-      (await app.request("https://pawlens.example/mcp", { method: "DELETE" }))
-        .status,
+      (
+        await app.request("https://pawlens.example/mcp", {
+          headers: { "mcp-session-id": "session-owner" },
+          method: "DELETE",
+        })
+      ).status,
     ).toBe(202);
     expect(runtime.close).toHaveBeenCalledTimes(1);
     expect(runtime.isConnected()).toBe(false);
+  });
+
+  it("別のMCPセッションは別ランタイムに束縛する", async () => {
+    const firstRuntime = createRuntime();
+    firstRuntime.sessionId.mockReturnValue("session-first");
+    const secondRuntime = createRuntime();
+    secondRuntime.sessionId.mockReturnValue("session-second");
+    const createMcpRuntime = vi
+      .fn()
+      .mockReturnValueOnce(firstRuntime)
+      .mockReturnValueOnce(secondRuntime);
+    const app = createApp({
+      createMcpRuntime,
+      createWorkerDependencies: () => ({
+        assets: {} as Fetcher,
+        kv: {} as KVNamespace,
+        model: { generateStructured: vi.fn() },
+      }),
+    });
+
+    await app.request("https://pawlens.example/mcp", { method: "POST" });
+    await app.request("https://pawlens.example/mcp", { method: "POST" });
+
+    expect(createMcpRuntime).toHaveBeenCalledTimes(2);
+    expect(firstRuntime.handleRequest).toHaveBeenCalledTimes(1);
+    expect(secondRuntime.handleRequest).toHaveBeenCalledTimes(1);
   });
 });
