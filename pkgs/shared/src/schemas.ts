@@ -88,3 +88,30 @@ export const DeleteProfileInputSchema = z.object({
   confirmed: z.literal(true),
   dogId: z.string().trim().min(1),
 });
+
+const ProfileDraftSchema = DogProfileSchema.pick({
+  name: true,
+  temperamentNote: true,
+});
+
+export const ManageDogProfileInputSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("create"),
+    ...ProfileDraftSchema.shape,
+  }),
+  z.object({
+    action: z.literal("update"),
+    dogId: z.string().trim().min(1),
+    ...ProfileDraftSchema.shape,
+  }),
+  z.object({
+    action: z.literal("delete"),
+    ...DeleteProfileInputSchema.shape,
+  }),
+]);
+
+export const ProfileManagementResultSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("created"), profile: DogProfileSchema }),
+  z.object({ status: z.literal("updated"), profile: DogProfileSchema }),
+  z.object({ status: z.literal("deleted"), dogId: z.string().trim().min(1) }),
+]);

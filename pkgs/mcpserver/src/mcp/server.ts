@@ -3,7 +3,12 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Context } from "hono";
 
 import type { WorkerRuntimeDependencies } from "../env.js";
+import {
+  createConversationScope,
+  createProfileRepository,
+} from "../repositories.js";
 import { registerHelloWidget } from "./hello-widget.js";
+import { registerManageDogProfile } from "./profile-management.js";
 
 export interface McpRuntime {
   close(): Promise<void>;
@@ -13,7 +18,7 @@ export interface McpRuntime {
 }
 
 export function createMcpRuntime(
-  _dependencies: WorkerRuntimeDependencies,
+  dependencies: WorkerRuntimeDependencies,
 ): McpRuntime {
   const server = new McpServer({
     name: "pawlens-mcpserver",
@@ -21,7 +26,15 @@ export function createMcpRuntime(
   });
   const transport = new StreamableHTTPTransport();
 
-  registerHelloWidget(server, _dependencies.assets);
+  const scope = createConversationScope();
+  const profiles = createProfileRepository({
+    createId: () => crypto.randomUUID(),
+    kv: dependencies.kv,
+    now: () => new Date(),
+  });
+
+  registerHelloWidget(server, dependencies.assets);
+  registerManageDogProfile(server, profiles, scope);
 
   return {
     close: () => server.close(),
