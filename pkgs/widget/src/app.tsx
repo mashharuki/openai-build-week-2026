@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 
 import {
+  getDogIdFromToolInputMessage,
   getStructuredContentFromBridgeMessage,
+  getToolCaller,
   startMcpAppsBridge,
 } from "./openai-runtime.js";
+import { ObservationActions } from "./observation-actions.js";
 import { type WidgetState, toWidgetState } from "./widget-state.js";
 
 export function WidgetStateView({ state }: { state: WidgetState }) {
@@ -52,6 +55,7 @@ export function WidgetStateView({ state }: { state: WidgetState }) {
 }
 
 export function HelloWidget() {
+  const [dogId, setDogId] = useState<string>();
   const [state, setState] = useState<WidgetState>({ kind: "empty" });
 
   useEffect(() => {
@@ -61,6 +65,10 @@ export function HelloWidget() {
       }
 
       const nextContent = getStructuredContentFromBridgeMessage(event.data);
+      const toolInputDogId = getDogIdFromToolInputMessage(event.data);
+      if (toolInputDogId) {
+        setDogId(toolInputDogId);
+      }
       if (nextContent !== undefined) {
         setState(toWidgetState(nextContent));
       }
@@ -78,6 +86,14 @@ export function HelloWidget() {
     <main aria-live="polite">
       <h1>PawLens</h1>
       <WidgetStateView state={state} />
+      {state.kind === "success" && state.assessment.status !== "urgent" && dogId ? (
+        <ObservationActions
+          assessment={state.assessment}
+          callTool={getToolCaller(window.openai ?? {})}
+          dogId={dogId}
+          locale="ja"
+        />
+      ) : null}
     </main>
   );
 }

@@ -14,6 +14,28 @@ interface BridgeHost {
   ): void;
 }
 
+export interface OpenAiToolHost {
+  callTool?: (name: string, arguments_: unknown) => Promise<unknown>;
+}
+
+export function getToolCaller(host: OpenAiToolHost): (name: string, input: unknown) => Promise<unknown> {
+  if (!host.callTool) {
+    return async () => {
+      throw new Error("The host does not support widget tool calls.");
+    };
+  }
+
+  return (name, input) => host.callTool!(name, input);
+}
+
+export function getDogIdFromToolInputMessage(message: unknown): string | undefined {
+  if (!message || typeof message !== "object" || !("jsonrpc" in message) || message.jsonrpc !== "2.0" || !("method" in message) || message.method !== "ui/notifications/tool-input" || !("params" in message) || !message.params || typeof message.params !== "object" || !("input" in message.params) || !message.params.input || typeof message.params.input !== "object" || !("dogId" in message.params.input) || typeof message.params.input.dogId !== "string") {
+    return undefined;
+  }
+
+  return message.params.input.dogId;
+}
+
 export function startMcpAppsBridge(host: BridgeHost): () => void {
   const requestId = `pawlens-hello-${crypto.randomUUID()}`;
   const onMessage = (event: { data: unknown }) => {

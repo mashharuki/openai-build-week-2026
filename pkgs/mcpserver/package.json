@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "dev": "wrangler dev",
+    "generate:openapi": "pnpm run build && node scripts/generate-openapi.mjs",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },

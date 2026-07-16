@@ -7,5 +7,5 @@
     "strict": true,
     "target": "ES2022"
   },
-  "include": ["src", "test/hello.test.ts", "test/openai-runtime.test.ts", "test/widget-state.test.ts", "test/app.test.tsx"]
+  "include": ["src", "test/hello.test.ts", "test/openai-runtime.test.ts", "test/widget-state.test.ts", "test/app.test.tsx", "test/observation-actions.test.tsx"]
 }

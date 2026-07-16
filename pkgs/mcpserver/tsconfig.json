@@ -26,6 +26,7 @@
     "test/mcp/pawlens-tools.test.ts",
     "test/mcp/profile-management.test.ts",
     "test/mcp/runtime-assessment.test.ts",
-    "test/mcp/save-observation.test.ts"
+    "test/mcp/save-observation.test.ts",
+    "test/openapi.test.ts"
   ]
 }
