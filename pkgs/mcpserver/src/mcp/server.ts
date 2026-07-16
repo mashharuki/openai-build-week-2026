@@ -15,6 +15,7 @@ import {
 import { registerAnalyzeDogSignal } from "./analyze-dog-signal.js";
 import { registerHelloWidget } from "./hello-widget.js";
 import { registerManageDogProfile } from "./profile-management.js";
+import { registerSaveObservation } from "./save-observation.js";
 
 export interface McpRuntime {
   close(): Promise<void>;
@@ -63,6 +64,7 @@ export function createMcpRuntime(
   registerHelloWidget(server, dependencies.assets);
   registerAnalyzeDogSignal(server, assessments, scope);
   registerManageDogProfile(server, profiles, scope);
+  registerSaveObservation(server, observations, scope);
 
   return {
     close: () => server.close(),
