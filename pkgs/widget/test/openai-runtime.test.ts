@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  getStructuredContentFromBridgeMessage,
-  startMcpAppsBridge,
-} from "./openai-runtime.js";
+    getStructuredContentFromBridgeMessage,
+    startMcpAppsBridge,
+} from "../src/openai-runtime.js";
 
 describe("getStructuredContentFromBridgeMessage", () => {
   it("MCP Apps bridgeのツール結果通知から構造化結果を取り出す", () => {

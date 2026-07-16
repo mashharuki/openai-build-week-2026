@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createHistoryDiff } from "./history-diff.js";
-import { createConversationScope } from "./repositories.js";
+import { createHistoryDiff } from "../src/history-diff.js";
+import { createConversationScope } from "../src/repositories.js";
 
 const scope = createConversationScope(() => "scope-owner");
 const firstLog = {

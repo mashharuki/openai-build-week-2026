@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AssessmentResult } from "@pawlens/shared";
 
-import { HelloWidget, WidgetStateView } from "./app.js";
+import { HelloWidget, WidgetStateView } from "../src/app.js";
 
 const assessmentResult: AssessmentResult = {
   additionalQuestion: null,

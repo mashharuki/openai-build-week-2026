@@ -6,8 +6,8 @@ import {
   MAX_AUDIO_DURATION_SECONDS,
   SignalInputSchema,
   getErrorMessage,
-} from "./index.js";
-import { dedupeObservationLogs, normalizeFileReference } from "./utils.js";
+} from "../src/index.js";
+import { dedupeObservationLogs, normalizeFileReference } from "../src/utils.js";
 
 describe("共有スキーマ", () => {
   it("記述優先の見立て入力を検証し、不正な状況と長すぎる音声を拒否する", () => {

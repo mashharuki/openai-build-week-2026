@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getHelloMessage } from "./hello.js";
+import { getHelloMessage } from "../src/hello.js";
 
 describe("getHelloMessage", () => {
   it("MCP Apps bridgeから届いた構造化結果を描画用テキストへ変換する", () => {

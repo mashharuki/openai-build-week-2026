@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   HELLO_WIDGET_RESOURCE_URI,
   registerHelloWidget,
-} from "./hello-widget.js";
+} from "../../src/mcp/hello-widget.js";
 
 describe("registerHelloWidget", () => {
   it("versioned ui://リソースとしてVite出力を登録する", async () => {

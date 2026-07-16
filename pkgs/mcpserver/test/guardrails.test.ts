@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { AssessmentResultSchema } from "@pawlens/shared";
 
-import { applyGuardrails } from "./guardrails.js";
+import { applyGuardrails } from "../src/guardrails.js";
 
 const candidate = {
   additionalQuestion: null,

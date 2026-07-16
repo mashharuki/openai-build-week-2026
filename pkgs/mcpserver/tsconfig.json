@@ -10,5 +10,5 @@
     "target": "ES2022",
     "types": ["@cloudflare/workers-types", "node"]
   },
-  "include": ["src"]
+  "include": ["src", "test/research-context.test.ts", "test/repositories.test.ts", "test/observation-service.test.ts", "test/model.test.ts", "test/index.test.ts", "test/history-diff.test.ts", "test/guardrails.test.ts", "test/audio-evidence.test.ts", "test/mcp/hello-widget.test.ts"]
 }

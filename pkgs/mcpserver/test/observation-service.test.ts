@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { createObservationService } from "./observation-service.js";
+import { createObservationService } from "../src/observation-service.js";
 import {
-  createConversationScope,
-  createProfileRepository,
-} from "./repositories.js";
+    createConversationScope,
+    createProfileRepository,
+} from "../src/repositories.js";
 
 class InMemoryKv {
   readonly entries = new Map<string, string>();

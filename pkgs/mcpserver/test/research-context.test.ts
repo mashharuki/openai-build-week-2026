@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { getResearchContext } from "./research-context.js";
+import { getResearchContext } from "../src/research-context.js";
 
 describe("ResearchContext", () => {
   it("来客とチャイムでは、固定された研究根拠だけを研究出典として返す", () => {

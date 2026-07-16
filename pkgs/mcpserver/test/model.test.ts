@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createModelAdapter } from "./model.js";
+import { createModelAdapter } from "../src/model.js";
 
 const validCandidate = {
   additionalQuestion: null,

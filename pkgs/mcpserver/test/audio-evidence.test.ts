@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { adaptEvidence, probeAudioEvidence } from "./audio-evidence.js";
+import { adaptEvidence, probeAudioEvidence } from "../src/audio-evidence.js";
 
 describe("evidence adapter", () => {
   it("音声能力プローブは有効時だけavailableを返す", () => {

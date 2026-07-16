@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  createConversationScope,
-  createProfileRepository,
-} from "./repositories.js";
+    createConversationScope,
+    createProfileRepository,
+} from "../src/repositories.js";
 
 class InMemoryKv {
   readonly entries = new Map<string, string>();

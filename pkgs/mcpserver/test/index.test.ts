@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  type McpRuntime,
-  type WorkerRuntimeDependencies,
-  createApp,
-} from "./index.js";
+    type McpRuntime,
+    type WorkerRuntimeDependencies,
+    createApp,
+} from "../src/index.js";
 
 function createRuntime(): McpRuntime & {
   close: ReturnType<typeof vi.fn>;

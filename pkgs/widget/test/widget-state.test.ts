@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { toWidgetState } from "./widget-state.js";
+import { toWidgetState } from "../src/widget-state.js";
 
 const assessmentResult = {
   additionalQuestion: null,
