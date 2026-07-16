@@ -3,7 +3,24 @@
 import { act, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { HelloWidget } from "./app.js";
+import type { AssessmentResult } from "@pawlens/shared";
+
+import { HelloWidget, WidgetStateView } from "./app.js";
+
+const assessmentResult: AssessmentResult = {
+  additionalQuestion: null,
+  confidence: "medium",
+  evidenceSources: ["research"],
+  limitations: "観察だけでは断定できません。",
+  observationPoints: ["耳の向き"],
+  primaryHypothesis: {
+    label: "警戒している可能性",
+    rationale: "来客直後の反応です。",
+  },
+  secondaryHypotheses: [],
+  status: "success",
+  suggestedAction: "玄関から距離を取ります。",
+};
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -29,7 +46,7 @@ describe("HelloWidget", () => {
           data: {
             jsonrpc: "2.0",
             method: "ui/notifications/tool-result",
-            params: { structuredContent: { greeting: "Hello PawLens" } },
+            params: { structuredContent: assessmentResult },
           },
           source: window.parent,
         }),
@@ -37,10 +54,46 @@ describe("HelloWidget", () => {
     });
 
     expect(screen.getByRole("heading", { name: "PawLens" })).not.toBeNull();
-    expect(screen.getByText("Hello PawLens")).not.toBeNull();
+    expect(screen.getByText("警戒している可能性")).not.toBeNull();
     expect(postMessage).toHaveBeenLastCalledWith(
       { jsonrpc: "2.0", method: "ui/notifications/initialized", params: {} },
       "*",
+    );
+  });
+
+  it("empty、loading、成功、システムエラー、緊急を区別して表示する", () => {
+    const { rerender } = render(<WidgetStateView state={{ kind: "empty" }} />);
+    expect(screen.getByText("見立てを始める準備ができました。")).not.toBeNull();
+
+    rerender(<WidgetStateView state={{ kind: "loading" }} />);
+    expect(screen.getByRole("status")).not.toBeNull();
+
+    rerender(
+      <WidgetStateView
+        state={{ assessment: assessmentResult, kind: "success" }}
+      />,
+    );
+    expect(screen.getAllByLabelText("assessment result")).not.toHaveLength(0);
+
+    rerender(
+      <WidgetStateView
+        state={{ kind: "error", message: "再試行してください。" }}
+      />,
+    );
+    expect(screen.getByLabelText("system error").style.color).toBe(
+      "rgb(185, 28, 28)",
+    );
+
+    rerender(
+      <WidgetStateView
+        state={{
+          assessment: { ...assessmentResult, status: "urgent" },
+          kind: "success",
+        }}
+      />,
+    );
+    expect(screen.getByLabelText("urgent safety guidance").style.color).toBe(
+      "rgb(180, 83, 9)",
     );
   });
 });

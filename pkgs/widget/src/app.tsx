@@ -1,13 +1,58 @@
 import { useEffect, useState } from "react";
 
-import { getHelloMessage } from "./hello.js";
 import {
   getStructuredContentFromBridgeMessage,
   startMcpAppsBridge,
 } from "./openai-runtime.js";
+import { type WidgetState, toWidgetState } from "./widget-state.js";
+
+export function WidgetStateView({ state }: { state: WidgetState }) {
+  if (state.kind === "empty") {
+    return <p>見立てを始める準備ができました。</p>;
+  }
+
+  if (state.kind === "loading") {
+    return <output>見立てを準備しています。</output>;
+  }
+
+  if (state.kind === "error") {
+    return (
+      <section
+        aria-label="system error"
+        role="alert"
+        style={{ color: "rgb(185, 28, 28)" }}
+      >
+        <span aria-hidden="true">!</span>
+        <h2>システムエラー</h2>
+        <p>{state.message}</p>
+      </section>
+    );
+  }
+
+  if (state.assessment.status === "urgent") {
+    return (
+      <section
+        aria-label="urgent safety guidance"
+        role="alert"
+        style={{ color: "rgb(180, 83, 9)" }}
+      >
+        <span aria-hidden="true">⚠</span>
+        <h2>緊急の安全案内</h2>
+        <p>{state.assessment.suggestedAction}</p>
+      </section>
+    );
+  }
+
+  return (
+    <section aria-label="assessment result">
+      <h2>見立て結果</h2>
+      <p>{state.assessment.primaryHypothesis.label}</p>
+    </section>
+  );
+}
 
 export function HelloWidget() {
-  const [structuredContent, setStructuredContent] = useState<unknown>();
+  const [state, setState] = useState<WidgetState>({ kind: "empty" });
 
   useEffect(() => {
     const onMessage = (event: MessageEvent<unknown>) => {
@@ -17,7 +62,7 @@ export function HelloWidget() {
 
       const nextContent = getStructuredContentFromBridgeMessage(event.data);
       if (nextContent !== undefined) {
-        setStructuredContent(nextContent);
+        setState(toWidgetState(nextContent));
       }
     };
 
@@ -32,7 +77,7 @@ export function HelloWidget() {
   return (
     <main aria-live="polite">
       <h1>PawLens</h1>
-      <p>{getHelloMessage(structuredContent as { greeting?: unknown })}</p>
+      <WidgetStateView state={state} />
     </main>
   );
 }
