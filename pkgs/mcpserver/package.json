@@ -12,6 +12,7 @@
   "dependencies": {
     "@hono/mcp": "^0.3.1",
     "@modelcontextprotocol/sdk": "^1.24.0",
+    "@pawlens/shared": "workspace:^",
     "hono": "^4.11.0"
   },
   "devDependencies": {
