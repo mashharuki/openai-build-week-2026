@@ -1,15 +1,25 @@
 import { useEffect, useState } from "react";
 
+import type { DogProfile } from "@pawlens/shared";
+
+import { GuidedAssessmentForm } from "./guided-assessment-form.js";
+import { ObservationActions } from "./observation-actions.js";
 import {
   getDogIdFromToolInputMessage,
   getStructuredContentFromBridgeMessage,
   getToolCaller,
   startMcpAppsBridge,
 } from "./openai-runtime.js";
-import { ObservationActions } from "./observation-actions.js";
+
 import { type WidgetState, toWidgetState } from "./widget-state.js";
 
-export function WidgetStateView({ state }: { state: WidgetState }) {
+export function WidgetStateView({
+  dogName,
+  state,
+}: {
+  dogName?: string;
+  state: WidgetState;
+}) {
   if (state.kind === "empty") {
     return <p>見立てを始める準備ができました。</p>;
   }
@@ -48,7 +58,7 @@ export function WidgetStateView({ state }: { state: WidgetState }) {
 
   return (
     <section aria-label="assessment result">
-      <h2>見立て結果</h2>
+      <h2>{dogName ? `${dogName}の見立て結果` : "見立て結果"}</h2>
       <p>{state.assessment.primaryHypothesis.label}</p>
     </section>
   );
@@ -56,6 +66,7 @@ export function WidgetStateView({ state }: { state: WidgetState }) {
 
 export function HelloWidget() {
   const [dogId, setDogId] = useState<string>();
+  const [profile, setProfile] = useState<DogProfile>();
   const [state, setState] = useState<WidgetState>({ kind: "empty" });
 
   useEffect(() => {
@@ -85,12 +96,23 @@ export function HelloWidget() {
   return (
     <main aria-live="polite">
       <h1>PawLens</h1>
-      <WidgetStateView state={state} />
-      {state.kind === "success" && state.assessment.status !== "urgent" && dogId ? (
+      <WidgetStateView dogName={profile?.name} state={state} />
+      <GuidedAssessmentForm
+        audioSupported={window.openai?.capabilities?.audioEvidence === true}
+        callTool={getToolCaller(window.openai ?? {})}
+        locale="ja"
+        onDogId={setDogId}
+        onProfileChange={setProfile}
+        onAssessment={(assessment) => setState({ assessment, kind: "success" })}
+      />
+      {state.kind === "success" &&
+      state.assessment.status !== "urgent" &&
+      dogId ? (
         <ObservationActions
           assessment={state.assessment}
           callTool={getToolCaller(window.openai ?? {})}
           dogId={dogId}
+          dogName={profile?.name}
           locale="ja"
         />
       ) : null}

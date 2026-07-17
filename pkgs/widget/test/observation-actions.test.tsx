@@ -89,6 +89,40 @@ describe("ObservationActions", () => {
     expect(screen.queryByText(assessment.primaryHypothesis.label)).toBeNull();
   });
 
+  it("更新後の個体名を観察記録と保存済み表示に反映する", async () => {
+    const callTool = vi.fn(async (name: string) => {
+      if (name === "save_observation") return savedLog;
+      return {
+        currentLog: savedLog,
+        previousLog: null,
+        status: "unavailable",
+        summary: "比較できる記録がまだありません。",
+      };
+    });
+    render(
+      <ObservationActions
+        assessment={assessment}
+        callTool={callTool}
+        dogId="dog-1"
+        dogName="ココア"
+        locale="ja"
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "ココアの観察記録" }),
+    ).not.toBeNull();
+    fireEvent.click(screen.getByLabelText("保存内容と削除方法を確認しました"));
+    fireEvent.click(screen.getByLabelText("耳の向き"));
+    fireEvent.click(screen.getByRole("button", { name: "ココアの観察を保存" }));
+
+    await waitFor(() =>
+      expect(
+        screen.getByText("ココアの保存済み観察を表示しています。"),
+      ).not.toBeNull(),
+    );
+  });
+
   it("連鎖削除の確認なしに削除ツールを呼ばず、確認後に保存済み観察を画面から除く", async () => {
     const callTool = vi.fn(async () => ({ dogId: "dog-1", status: "deleted" }));
     render(

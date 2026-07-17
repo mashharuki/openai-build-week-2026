@@ -5,7 +5,10 @@ import { HelloWidget } from "./app.js";
 
 declare global {
   interface Window {
-    openai?: { callTool?: (name: string, arguments_: unknown) => Promise<unknown> };
+    openai?: {
+      capabilities?: { audioEvidence?: boolean };
+      callTool?: (name: string, arguments_: unknown) => Promise<unknown>;
+    };
   }
 }
 

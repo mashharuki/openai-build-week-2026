@@ -70,10 +70,14 @@ describe("HelloWidget", () => {
 
     rerender(
       <WidgetStateView
+        dogName="ココア"
         state={{ assessment: assessmentResult, kind: "success" }}
       />,
     );
     expect(screen.getAllByLabelText("assessment result")).not.toHaveLength(0);
+    expect(
+      screen.getByRole("heading", { name: "ココアの見立て結果" }),
+    ).not.toBeNull();
 
     rerender(
       <WidgetStateView

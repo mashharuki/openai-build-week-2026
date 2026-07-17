@@ -13,6 +13,7 @@ export interface ObservationActionsProps {
   assessment: AssessmentResult;
   callTool: (name: string, input: unknown) => Promise<unknown>;
   dogId: string;
+  dogName?: string;
   locale: Locale;
 }
 
@@ -20,6 +21,7 @@ export function ObservationActions({
   assessment,
   callTool,
   dogId,
+  dogName,
   locale,
 }: ObservationActionsProps) {
   const [confirmedCues, setConfirmedCues] = useState<string[]>([]);
@@ -115,6 +117,7 @@ export function ObservationActions({
 
   return (
     <section aria-label="confirmed observation actions">
+      {dogName ? <h2>{dogName}の観察記録</h2> : null}
       <p>{getErrorMessage("privacy_notice", locale)}</p>
       <label>
         <input
@@ -143,7 +146,7 @@ export function ObservationActions({
         onClick={() => void saveObservation()}
         type="button"
       >
-        観察を保存
+        {dogName ? `${dogName}の観察を保存` : "観察を保存"}
       </button>
       <label>
         <input
@@ -161,6 +164,9 @@ export function ObservationActions({
         プロフィールを削除
       </button>
       {status ? <output aria-live="polite">{status}</output> : null}
+      {recentLogs.length > 0 && dogName ? (
+        <p>{dogName}の保存済み観察を表示しています。</p>
+      ) : null}
     </section>
   );
 }

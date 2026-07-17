@@ -15,21 +15,42 @@ interface BridgeHost {
 }
 
 export interface OpenAiToolHost {
+  capabilities?: { audioEvidence?: boolean };
   callTool?: (name: string, arguments_: unknown) => Promise<unknown>;
 }
 
-export function getToolCaller(host: OpenAiToolHost): (name: string, input: unknown) => Promise<unknown> {
-  if (!host.callTool) {
+export function getToolCaller(
+  host: OpenAiToolHost,
+): (name: string, input: unknown) => Promise<unknown> {
+  const callTool = host.callTool;
+  if (!callTool) {
     return async () => {
       throw new Error("The host does not support widget tool calls.");
     };
   }
 
-  return (name, input) => host.callTool!(name, input);
+  return (name, input) => callTool(name, input);
 }
 
-export function getDogIdFromToolInputMessage(message: unknown): string | undefined {
-  if (!message || typeof message !== "object" || !("jsonrpc" in message) || message.jsonrpc !== "2.0" || !("method" in message) || message.method !== "ui/notifications/tool-input" || !("params" in message) || !message.params || typeof message.params !== "object" || !("input" in message.params) || !message.params.input || typeof message.params.input !== "object" || !("dogId" in message.params.input) || typeof message.params.input.dogId !== "string") {
+export function getDogIdFromToolInputMessage(
+  message: unknown,
+): string | undefined {
+  if (
+    !message ||
+    typeof message !== "object" ||
+    !("jsonrpc" in message) ||
+    message.jsonrpc !== "2.0" ||
+    !("method" in message) ||
+    message.method !== "ui/notifications/tool-input" ||
+    !("params" in message) ||
+    !message.params ||
+    typeof message.params !== "object" ||
+    !("input" in message.params) ||
+    !message.params.input ||
+    typeof message.params.input !== "object" ||
+    !("dogId" in message.params.input) ||
+    typeof message.params.input.dogId !== "string"
+  ) {
     return undefined;
   }
 
