@@ -25,6 +25,33 @@ describe("OpenAPI validation artifact", () => {
     expect(document["x-mcp-tools"]).toHaveLength(4);
   });
 
+  it("壊れたOpenAPI 3.1のhealth参照を検証器が拒否する", () => {
+    const document = createOpenApiDocument();
+    const invalid = structuredClone(document);
+    invalid.paths = {
+      "/health": {
+        get: {
+          responses: {
+            "200": {
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/MissingHealthResponse",
+                  },
+                },
+              },
+              description: "MCP server is available",
+            },
+          },
+        },
+      },
+    };
+
+    expect(() => validateOpenApiDocument(invalid)).toThrow(
+      "OpenAPI health response must reference HealthResponse.",
+    );
+  });
+
   it("各ツールの可視性・副作用・共有Zodスキーマ参照と、コミット済み成果物を一致させる", async () => {
     const document = createOpenApiDocument();
     const tools = Object.fromEntries(
@@ -74,6 +101,13 @@ describe("OpenAPI validation artifact", () => {
         tool.outputSchema.replace("#/components/schemas/", ""),
       );
     }
+
+    expect(document.components.schemas.SaveObservationInput).toMatchObject({
+      additionalProperties: false,
+    });
+    expect(document.components.schemas.SignalInput).toMatchObject({
+      additionalProperties: true,
+    });
 
     await expect(readFile(openApiArtifactPath, "utf8")).resolves.toBe(
       serializeOpenApiDocument(),

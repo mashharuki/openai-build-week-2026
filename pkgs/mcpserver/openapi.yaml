@@ -1,0 +1,834 @@
+{
+  "components": {
+    "schemas": {
+      "AssessmentResult": {
+        "additionalProperties": true,
+        "properties": {
+          "additionalQuestion": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "confidence": {
+            "enum": [
+              "low",
+              "medium",
+              "high"
+            ],
+            "type": "string"
+          },
+          "evidenceSources": {
+            "items": {
+              "enum": [
+                "research",
+                "confirmed_observation"
+              ],
+              "type": "string"
+            },
+            "minItems": 1,
+            "type": "array"
+          },
+          "limitations": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "observationPoints": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          },
+          "primaryHypothesis": {
+            "additionalProperties": true,
+            "properties": {
+              "label": {
+                "maxLength": 300,
+                "minLength": 1,
+                "type": "string"
+              },
+              "rationale": {
+                "maxLength": 1000,
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "label",
+              "rationale"
+            ],
+            "type": "object"
+          },
+          "secondaryHypotheses": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "label": {
+                  "maxLength": 300,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "rationale": {
+                  "maxLength": 1000,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "label",
+                "rationale"
+              ],
+              "type": "object"
+            },
+            "maxItems": 3,
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "success",
+              "partial",
+              "urgent",
+              "error"
+            ],
+            "type": "string"
+          },
+          "suggestedAction": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "additionalQuestion",
+          "confidence",
+          "evidenceSources",
+          "limitations",
+          "observationPoints",
+          "primaryHypothesis",
+          "secondaryHypotheses",
+          "status",
+          "suggestedAction"
+        ],
+        "type": "object"
+      },
+      "GetDogHistoryInput": {
+        "additionalProperties": false,
+        "properties": {
+          "dogId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "recentLogs": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "chosenAction": {
+                  "maxLength": 500,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "conversationId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "dogId": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "observedCues": {
+                  "items": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "maxItems": 10,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "recordedAt": {
+                  "format": "date-time",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "chosenAction",
+                "conversationId",
+                "dogId",
+                "id",
+                "observedCues",
+                "recordedAt"
+              ],
+              "type": "object"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "dogId",
+          "recentLogs"
+        ],
+        "type": "object"
+      },
+      "HistoryComparison": {
+        "additionalProperties": true,
+        "properties": {
+          "currentLog": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "chosenAction": {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "conversationId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "dogId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "id": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "observedCues": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "recordedAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "chosenAction",
+                  "conversationId",
+                  "dogId",
+                  "id",
+                  "observedCues",
+                  "recordedAt"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "previousLog": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "chosenAction": {
+                    "maxLength": 500,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "conversationId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "dogId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "id": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "observedCues": {
+                    "items": {
+                      "minLength": 1,
+                      "type": "string"
+                    },
+                    "maxItems": 10,
+                    "minItems": 1,
+                    "type": "array"
+                  },
+                  "recordedAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "chosenAction",
+                  "conversationId",
+                  "dogId",
+                  "id",
+                  "observedCues",
+                  "recordedAt"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "enum": [
+              "available",
+              "unavailable"
+            ],
+            "type": "string"
+          },
+          "summary": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": [
+          "currentLog",
+          "previousLog",
+          "status",
+          "summary"
+        ],
+        "type": "object"
+      },
+      "ManageDogProfileInput": {
+        "oneOf": [
+          {
+            "additionalProperties": true,
+            "properties": {
+              "action": {
+                "const": "create"
+              },
+              "name": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "temperamentNote": {
+                "anyOf": [
+                  {
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "name",
+              "temperamentNote"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "action": {
+                "const": "update"
+              },
+              "dogId": {
+                "minLength": 1,
+                "type": "string"
+              },
+              "name": {
+                "maxLength": 80,
+                "minLength": 1,
+                "type": "string"
+              },
+              "temperamentNote": {
+                "anyOf": [
+                  {
+                    "maxLength": 500,
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "action",
+              "dogId",
+              "name",
+              "temperamentNote"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "action": {
+                "const": "delete"
+              },
+              "confirmed": {
+                "const": true
+              },
+              "dogId": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "action",
+              "confirmed",
+              "dogId"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "ObservationLog": {
+        "additionalProperties": true,
+        "properties": {
+          "chosenAction": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "conversationId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "dogId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "observedCues": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          },
+          "recordedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "chosenAction",
+          "conversationId",
+          "dogId",
+          "id",
+          "observedCues",
+          "recordedAt"
+        ],
+        "type": "object"
+      },
+      "ProfileManagementResult": {
+        "oneOf": [
+          {
+            "additionalProperties": true,
+            "properties": {
+              "status": {
+                "const": "created"
+              },
+              "profile": {
+                "additionalProperties": true,
+                "properties": {
+                  "createdAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "id": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "temperamentNote": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "createdAt",
+                  "id",
+                  "name",
+                  "temperamentNote",
+                  "updatedAt"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "status",
+              "profile"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "status": {
+                "const": "updated"
+              },
+              "profile": {
+                "additionalProperties": true,
+                "properties": {
+                  "createdAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "id": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 80,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "temperamentNote": {
+                    "anyOf": [
+                      {
+                        "maxLength": 500,
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "updatedAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "createdAt",
+                  "id",
+                  "name",
+                  "temperamentNote",
+                  "updatedAt"
+                ],
+                "type": "object"
+              }
+            },
+            "required": [
+              "status",
+              "profile"
+            ],
+            "type": "object"
+          },
+          {
+            "additionalProperties": true,
+            "properties": {
+              "status": {
+                "const": "deleted"
+              },
+              "dogId": {
+                "minLength": 1,
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "dogId"
+            ],
+            "type": "object"
+          }
+        ]
+      },
+      "SaveObservationInput": {
+        "additionalProperties": false,
+        "properties": {
+          "chosenAction": {
+            "maxLength": 500,
+            "minLength": 1,
+            "type": "string"
+          },
+          "dogId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "observedCues": {
+            "items": {
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 10,
+            "minItems": 1,
+            "type": "array"
+          }
+        },
+        "required": [
+          "chosenAction",
+          "dogId",
+          "observedCues"
+        ],
+        "type": "object"
+      },
+      "SignalInput": {
+        "additionalProperties": true,
+        "properties": {
+          "audio": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "downloadUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "durationSeconds": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 10,
+                    "type": "number"
+                  },
+                  "fileId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fileId",
+                  "mimeType"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "barkDescription": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "type": "string"
+          },
+          "context": {
+            "enum": [
+              "visitor",
+              "doorbell",
+              "unknown",
+              "other"
+            ],
+            "type": "string"
+          },
+          "distanceToPerson": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "dogId": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "image": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "properties": {
+                  "downloadUrl": {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "durationSeconds": {
+                    "exclusiveMinimum": 0,
+                    "maximum": 10,
+                    "type": "number"
+                  },
+                  "fileId": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "mimeType": {
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fileId",
+                  "mimeType"
+                ],
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locale": {
+            "enum": [
+              "ja",
+              "en"
+            ],
+            "type": "string"
+          },
+          "precedingEvent": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "audio",
+          "barkDescription",
+          "context",
+          "distanceToPerson",
+          "dogId",
+          "image",
+          "locale",
+          "precedingEvent"
+        ],
+        "type": "object"
+      },
+      "HealthResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "service": {
+            "type": "string"
+          },
+          "status": {
+            "const": "ok"
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "status",
+          "timestamp",
+          "version"
+        ],
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "PawLens MCP validation contract",
+    "version": "0.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            },
+            "description": "MCP server is available"
+          }
+        }
+      }
+    }
+  },
+  "x-mcp-tools": [
+    {
+      "destructive": false,
+      "idempotent": true,
+      "inputSchema": "#/components/schemas/SignalInput",
+      "name": "analyze_dog_signal",
+      "outputSchema": "#/components/schemas/AssessmentResult",
+      "readOnly": true,
+      "visibility": [
+        "model",
+        "app"
+      ]
+    },
+    {
+      "destructive": false,
+      "idempotent": true,
+      "inputSchema": "#/components/schemas/GetDogHistoryInput",
+      "name": "get_dog_history",
+      "outputSchema": "#/components/schemas/HistoryComparison",
+      "readOnly": true,
+      "visibility": [
+        "model",
+        "app"
+      ]
+    },
+    {
+      "destructive": true,
+      "idempotent": false,
+      "inputSchema": "#/components/schemas/ManageDogProfileInput",
+      "name": "manage_dog_profile",
+      "outputSchema": "#/components/schemas/ProfileManagementResult",
+      "readOnly": false,
+      "visibility": [
+        "model",
+        "app"
+      ]
+    },
+    {
+      "destructive": false,
+      "idempotent": false,
+      "inputSchema": "#/components/schemas/SaveObservationInput",
+      "name": "save_observation",
+      "outputSchema": "#/components/schemas/ObservationLog",
+      "readOnly": false,
+      "visibility": [
+        "app"
+      ]
+    }
+  ]
+}
