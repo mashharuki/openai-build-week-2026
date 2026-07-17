@@ -5,6 +5,7 @@ import {
   type Locale,
   type ObservationLog,
   ObservationLogSchema,
+  ProfileManagementResultSchema,
   getErrorMessage,
 } from "@pawlens/shared";
 
@@ -38,22 +39,45 @@ export function ObservationActions({
   const saveObservation = async () => {
     if (!privacyConfirmed || confirmedCues.length === 0) return;
 
-    const result = await callTool("save_observation", {
-      chosenAction: assessment.suggestedAction,
-      dogId,
-      observedCues: confirmedCues,
-    });
-    const parsed = ObservationLogSchema.safeParse(result);
-    if (!parsed.success) {
-      setStatus("保存した観察を安全に確認できませんでした。");
+    let result: unknown;
+    try {
+      result = await callTool("save_observation", {
+        chosenAction: assessment.suggestedAction,
+        dogId,
+        observedCues: confirmedCues,
+      });
+    } catch {
+      setStatus(getErrorMessage("generation_failed", locale));
       return;
     }
 
-    const nextLogs = [...recentLogs.filter((log) => log.id !== parsed.data.id), parsed.data];
+    const parsed = ObservationLogSchema.safeParse(result);
+    if (!parsed.success) {
+      setStatus(getErrorMessage("generation_failed", locale));
+      return;
+    }
+
+    const nextLogs = [
+      ...recentLogs.filter((log) => log.id !== parsed.data.id),
+      parsed.data,
+    ];
     setRecentLogs(nextLogs);
-    const comparison = await callTool("get_dog_history", { dogId, recentLogs: nextLogs });
+    let comparison: unknown;
+    try {
+      comparison = await callTool("get_dog_history", {
+        dogId,
+        recentLogs: nextLogs,
+      });
+    } catch {
+      setStatus(getErrorMessage("generation_failed", locale));
+      return;
+    }
+
     setStatus(
-      comparison && typeof comparison === "object" && "summary" in comparison && typeof comparison.summary === "string"
+      comparison &&
+        typeof comparison === "object" &&
+        "summary" in comparison &&
+        typeof comparison.summary === "string"
         ? comparison.summary
         : "観察を保存しました。",
     );
@@ -62,11 +86,28 @@ export function ObservationActions({
   const deleteProfile = async () => {
     if (!deletionConfirmed) return;
 
-    await callTool("manage_dog_profile", {
-      action: "delete",
-      confirmed: true,
-      dogId,
-    });
+    let result: unknown;
+    try {
+      result = await callTool("manage_dog_profile", {
+        action: "delete",
+        confirmed: true,
+        dogId,
+      });
+    } catch {
+      setStatus(getErrorMessage("generation_failed", locale));
+      return;
+    }
+
+    const parsed = ProfileManagementResultSchema.safeParse(result);
+    if (
+      !parsed.success ||
+      parsed.data.status !== "deleted" ||
+      parsed.data.dogId !== dogId
+    ) {
+      setStatus(getErrorMessage("generation_failed", locale));
+      return;
+    }
+
     setRecentLogs([]);
     setConfirmedCues([]);
     setStatus("プロフィールと保存済み観察を削除しました。");
@@ -97,7 +138,11 @@ export function ObservationActions({
           </label>
         ))}
       </fieldset>
-      <button disabled={!privacyConfirmed || confirmedCues.length === 0} onClick={() => void saveObservation()} type="button">
+      <button
+        disabled={!privacyConfirmed || confirmedCues.length === 0}
+        onClick={() => void saveObservation()}
+        type="button"
+      >
         観察を保存
       </button>
       <label>
@@ -108,10 +153,14 @@ export function ObservationActions({
         />
         この犬の保存済み観察も削除されることを確認しました
       </label>
-      <button disabled={!deletionConfirmed} onClick={() => void deleteProfile()} type="button">
+      <button
+        disabled={!deletionConfirmed}
+        onClick={() => void deleteProfile()}
+        type="button"
+      >
         プロフィールを削除
       </button>
-      {status ? <p role="status">{status}</p> : null}
+      {status ? <output aria-live="polite">{status}</output> : null}
     </section>
   );
 }
