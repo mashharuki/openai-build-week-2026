@@ -20,4 +20,3 @@ initial_prompt: ""
 symbol_info_budget:
 read_only_memory_patterns: []
 ignored_memory_patterns: []
-web_dashboard_open_on_launch: false
