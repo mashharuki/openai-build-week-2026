@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import {
   type AssessmentResult,
+  type HistoryComparison,
+  HistoryComparisonSchema,
   type Locale,
   type ObservationLog,
   ObservationLogSchema,
@@ -15,6 +17,7 @@ export interface ObservationActionsProps {
   dogId: string;
   dogName?: string;
   locale: Locale;
+  onHistoryComparison?: (comparison: HistoryComparison) => void;
 }
 
 export function ObservationActions({
@@ -23,6 +26,7 @@ export function ObservationActions({
   dogId,
   dogName,
   locale,
+  onHistoryComparison,
 }: ObservationActionsProps) {
   const [confirmedCues, setConfirmedCues] = useState<string[]>([]);
   const [deletionConfirmed, setDeletionConfirmed] = useState(false);
@@ -75,14 +79,13 @@ export function ObservationActions({
       return;
     }
 
-    setStatus(
-      comparison &&
-        typeof comparison === "object" &&
-        "summary" in comparison &&
-        typeof comparison.summary === "string"
-        ? comparison.summary
-        : "観察を保存しました。",
-    );
+    const parsedComparison = HistoryComparisonSchema.safeParse(comparison);
+    if (!parsedComparison.success) {
+      setStatus("観察を保存しました。");
+      return;
+    }
+    onHistoryComparison?.(parsedComparison.data);
+    setStatus(parsedComparison.data.summary);
   };
 
   const deleteProfile = async () => {

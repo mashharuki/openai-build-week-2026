@@ -14,6 +14,7 @@
     "test/widget-state.test.ts",
     "test/app.test.tsx",
     "test/observation-actions.test.tsx",
-    "test/guided-assessment-form.test.tsx"
+    "test/guided-assessment-form.test.tsx",
+    "test/assessment-card.test.tsx"
   ]
 }

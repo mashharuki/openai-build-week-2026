@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 
-import type { DogProfile } from "@pawlens/shared";
+import type { DogProfile, HistoryComparison } from "@pawlens/shared";
 
+import { AssessmentCard } from "./assessment-card.js";
 import { GuidedAssessmentForm } from "./guided-assessment-form.js";
 import { ObservationActions } from "./observation-actions.js";
 import {
@@ -42,30 +43,12 @@ export function WidgetStateView({
     );
   }
 
-  if (state.assessment.status === "urgent") {
-    return (
-      <section
-        aria-label="urgent safety guidance"
-        role="alert"
-        style={{ color: "rgb(180, 83, 9)" }}
-      >
-        <span aria-hidden="true">⚠</span>
-        <h2>緊急の安全案内</h2>
-        <p>{state.assessment.suggestedAction}</p>
-      </section>
-    );
-  }
-
-  return (
-    <section aria-label="assessment result">
-      <h2>{dogName ? `${dogName}の見立て結果` : "見立て結果"}</h2>
-      <p>{state.assessment.primaryHypothesis.label}</p>
-    </section>
-  );
+  return <AssessmentCard assessment={state.assessment} dogName={dogName} />;
 }
 
 export function HelloWidget() {
   const [dogId, setDogId] = useState<string>();
+  const [history, setHistory] = useState<HistoryComparison>();
   const [profile, setProfile] = useState<DogProfile>();
   const [state, setState] = useState<WidgetState>({ kind: "empty" });
 
@@ -96,7 +79,27 @@ export function HelloWidget() {
   return (
     <main aria-live="polite">
       <h1>PawLens</h1>
-      <WidgetStateView dogName={profile?.name} state={state} />
+      {state.kind === "success" ? (
+        <AssessmentCard
+          actions={
+            state.assessment.status !== "urgent" && dogId ? (
+              <ObservationActions
+                assessment={state.assessment}
+                callTool={getToolCaller(window.openai ?? {})}
+                dogId={dogId}
+                dogName={profile?.name}
+                locale="ja"
+                onHistoryComparison={setHistory}
+              />
+            ) : null
+          }
+          assessment={state.assessment}
+          dogName={profile?.name}
+          history={history}
+        />
+      ) : (
+        <WidgetStateView dogName={profile?.name} state={state} />
+      )}
       <GuidedAssessmentForm
         audioSupported={window.openai?.capabilities?.audioEvidence === true}
         callTool={getToolCaller(window.openai ?? {})}
@@ -105,17 +108,6 @@ export function HelloWidget() {
         onProfileChange={setProfile}
         onAssessment={(assessment) => setState({ assessment, kind: "success" })}
       />
-      {state.kind === "success" &&
-      state.assessment.status !== "urgent" &&
-      dogId ? (
-        <ObservationActions
-          assessment={state.assessment}
-          callTool={getToolCaller(window.openai ?? {})}
-          dogId={dogId}
-          dogName={profile?.name}
-          locale="ja"
-        />
-      ) : null}
     </main>
   );
 }
