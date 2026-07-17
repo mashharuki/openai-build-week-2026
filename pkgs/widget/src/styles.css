@@ -1,0 +1,105 @@
+:root {
+  color: #16233a;
+  background: #f6f0e6;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  line-height: 1.65;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+main {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: clamp(1rem, 4vw, 3rem);
+}
+
+section[aria-label] {
+  margin-block: 1rem;
+  padding: 1rem;
+  border: 1px solid #bdab8b;
+  border-radius: 0.75rem;
+  background: #fffdf8;
+  box-shadow: 0.25rem 0.3rem 0 #e4d7c1;
+}
+
+button,
+input,
+select,
+textarea,
+a {
+  min-height: 2.75rem;
+  font: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  border: 1px solid #6b5c48;
+  border-radius: 0.35rem;
+}
+
+button {
+  padding-inline: 0.85rem;
+  cursor: pointer;
+  background: #e6a23c;
+  color: #18253a;
+  font-weight: 700;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 3px solid #075f83;
+  outline-offset: 3px;
+}
+
+section[role="alert"] {
+  border-width: 3px;
+  font-weight: 650;
+}
+
+section[data-state="urgent"] {
+  background: #fff3db;
+}
+section[data-state="error"] {
+  background: #fff0ef;
+}
+
+[data-motion="reduced"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  section[data-state="assessment"] {
+    animation: card-arrive 220ms ease-out both;
+  }
+  @keyframes card-arrive {
+    from {
+      opacity: 0;
+      transform: translateY(0.4rem);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

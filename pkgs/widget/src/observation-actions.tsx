@@ -28,6 +28,7 @@ export function ObservationActions({
   locale,
   onHistoryComparison,
 }: ObservationActionsProps) {
+  const copy = observationCopy[locale];
   const [confirmedCues, setConfirmedCues] = useState<string[]>([]);
   const [deletionConfirmed, setDeletionConfirmed] = useState(false);
   const [privacyConfirmed, setPrivacyConfirmed] = useState(false);
@@ -81,7 +82,7 @@ export function ObservationActions({
 
     const parsedComparison = HistoryComparisonSchema.safeParse(comparison);
     if (!parsedComparison.success) {
-      setStatus("観察を保存しました。");
+      setStatus(copy.saved);
       return;
     }
     onHistoryComparison?.(parsedComparison.data);
@@ -115,12 +116,12 @@ export function ObservationActions({
 
     setRecentLogs([]);
     setConfirmedCues([]);
-    setStatus("プロフィールと保存済み観察を削除しました。");
+    setStatus(copy.deleted);
   };
 
   return (
-    <section aria-label="confirmed observation actions">
-      {dogName ? <h2>{dogName}の観察記録</h2> : null}
+    <section aria-label={copy.sectionLabel}>
+      {dogName ? <h2>{copy.recordTitle(dogName)}</h2> : null}
       <p>{getErrorMessage("privacy_notice", locale)}</p>
       <label>
         <input
@@ -128,11 +129,11 @@ export function ObservationActions({
           onChange={(event) => setPrivacyConfirmed(event.target.checked)}
           type="checkbox"
         />
-        保存内容と削除方法を確認しました
+        {copy.privacyConfirmed}
       </label>
       <p>{getErrorMessage("media_privacy_notice", locale)}</p>
       <fieldset>
-        <legend>飼い主が確認した観察</legend>
+        <legend>{copy.confirmedObservations}</legend>
         {assessment.observationPoints.map((cue) => (
           <label key={cue}>
             <input
@@ -149,7 +150,7 @@ export function ObservationActions({
         onClick={() => void saveObservation()}
         type="button"
       >
-        {dogName ? `${dogName}の観察を保存` : "観察を保存"}
+        {dogName ? copy.saveNamed(dogName) : copy.save}
       </button>
       <label>
         <input
@@ -157,19 +158,49 @@ export function ObservationActions({
           onChange={(event) => setDeletionConfirmed(event.target.checked)}
           type="checkbox"
         />
-        この犬の保存済み観察も削除されることを確認しました
+        {copy.deletionConfirmed}
       </label>
       <button
         disabled={!deletionConfirmed}
         onClick={() => void deleteProfile()}
         type="button"
       >
-        プロフィールを削除
+        {copy.deleteProfile}
       </button>
       {status ? <output aria-live="polite">{status}</output> : null}
       {recentLogs.length > 0 && dogName ? (
-        <p>{dogName}の保存済み観察を表示しています。</p>
+        <p>{copy.savedDisplay(dogName)}</p>
       ) : null}
     </section>
   );
 }
+
+const observationCopy = {
+  en: {
+    confirmedObservations: "Observations confirmed by the owner",
+    deleted: "The profile and saved observations have been deleted.",
+    deletionConfirmed:
+      "I understand that this dog's saved observations will also be deleted",
+    deleteProfile: "Delete profile",
+    privacyConfirmed: "I have reviewed what is saved and how to delete it",
+    recordTitle: (name: string) => `${name}'s observation record`,
+    save: "Save observation",
+    sectionLabel: "Confirmed observation actions",
+    saved: "Observation saved.",
+    savedDisplay: (name: string) => `Showing ${name}'s saved observations.`,
+    saveNamed: (name: string) => `Save ${name}'s observation`,
+  },
+  ja: {
+    confirmedObservations: "飼い主が確認した観察",
+    deleted: "プロフィールと保存済み観察を削除しました。",
+    deletionConfirmed: "この犬の保存済み観察も削除されることを確認しました",
+    deleteProfile: "プロフィールを削除",
+    privacyConfirmed: "保存内容と削除方法を確認しました",
+    recordTitle: (name: string) => `${name}の観察記録`,
+    save: "観察を保存",
+    sectionLabel: "確認済み観察の操作",
+    saved: "観察を保存しました。",
+    savedDisplay: (name: string) => `${name}の保存済み観察を表示しています。`,
+    saveNamed: (name: string) => `${name}の観察を保存`,
+  },
+} as const;

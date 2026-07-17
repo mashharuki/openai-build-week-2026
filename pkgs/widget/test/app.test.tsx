@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { act, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AssessmentResult } from "@pawlens/shared";
@@ -23,10 +23,20 @@ const assessmentResult: AssessmentResult = {
 };
 
 afterEach(() => {
+  cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
 });
 
 describe("HelloWidget", () => {
+  it("低モーション設定では静的表示を指定する", () => {
+    const matchMedia = vi.fn(() => ({ matches: true }));
+    vi.stubGlobal("matchMedia", matchMedia);
+    render(<HelloWidget />);
+
+    expect(screen.getByRole("main").dataset.motion).toBe("reduced");
+  });
+
   it("bridge初期化後にtool-resultの構造化結果をインライン描画する", () => {
     const postMessage = vi.spyOn(window.parent, "postMessage");
     render(<HelloWidget />);
@@ -74,7 +84,7 @@ describe("HelloWidget", () => {
         state={{ assessment: assessmentResult, kind: "success" }}
       />,
     );
-    expect(screen.getAllByLabelText("assessment result")).not.toHaveLength(0);
+    expect(screen.getAllByLabelText("見立て結果")).not.toHaveLength(0);
     expect(
       screen.getByRole("heading", { name: "ココアの見立て結果" }),
     ).not.toBeNull();
@@ -84,7 +94,7 @@ describe("HelloWidget", () => {
         state={{ kind: "error", message: "再試行してください。" }}
       />,
     );
-    expect(screen.getByLabelText("system error").style.color).toBe(
+    expect(screen.getByLabelText("システムエラー").style.color).toBe(
       "rgb(185, 28, 28)",
     );
 
@@ -96,8 +106,28 @@ describe("HelloWidget", () => {
         }}
       />,
     );
-    expect(screen.getByLabelText("urgent safety guidance").style.color).toBe(
+    expect(screen.getByLabelText("緊急の安全案内").style.color).toBe(
       "rgb(180, 83, 9)",
     );
+  });
+
+  it("英語の4状態でも表示文言を切り替える", () => {
+    const { rerender } = render(
+      <WidgetStateView locale="en" state={{ kind: "empty" }} />,
+    );
+    expect(screen.getByText("Ready to begin an assessment.")).not.toBeNull();
+
+    rerender(<WidgetStateView locale="en" state={{ kind: "loading" }} />);
+    expect(screen.getByText("Preparing the assessment.")).not.toBeNull();
+
+    rerender(
+      <WidgetStateView
+        locale="en"
+        state={{ kind: "error", message: "Try again." }}
+      />,
+    );
+    expect(
+      screen.getByRole("heading", { name: "System error" }),
+    ).not.toBeNull();
   });
 });

@@ -26,10 +26,10 @@ export interface GuidedAssessmentFormProps {
 }
 
 const contextOptions = [
-  { label: "来客", value: "visitor" },
-  { label: "チャイム", value: "doorbell" },
-  { label: "状況不明", value: "unknown" },
-  { label: "来客以外", value: "other" },
+  { value: "visitor" },
+  { value: "doorbell" },
+  { value: "unknown" },
+  { value: "other" },
 ] as const;
 
 export function GuidedAssessmentForm({
@@ -41,6 +41,7 @@ export function GuidedAssessmentForm({
   onDogId,
   onProfileChange,
 }: GuidedAssessmentFormProps) {
+  const copy = formCopy[locale];
   const [barkDescription, setBarkDescription] = useState("");
   const [context, setContext] =
     useState<(typeof contextOptions)[number]["value"]>("unknown");
@@ -48,6 +49,7 @@ export function GuidedAssessmentForm({
   const [audio, setAudio] = useState<FileReference | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [image, setImage] = useState<FileReference | null>(null);
+  const [isRequesting, setIsRequesting] = useState(false);
   const [mediaNoticeVisible, setMediaNoticeVisible] = useState(false);
   const [precedingEvent, setPrecedingEvent] = useState("");
   const [profile, setProfile] = useState<DogProfile | null>(null);
@@ -88,6 +90,7 @@ export function GuidedAssessmentForm({
   const requestAssessment = async () => {
     if (!profile || !barkDescription.trim()) return;
 
+    setIsRequesting(true);
     try {
       const result = await callTool("analyze_dog_signal", {
         audio,
@@ -108,6 +111,8 @@ export function GuidedAssessmentForm({
       onAssessment(parsed.data);
     } catch {
       setStatus(getErrorMessage("generation_failed", locale));
+    } finally {
+      setIsRequesting(false);
     }
   };
 
@@ -151,14 +156,10 @@ export function GuidedAssessmentForm({
   if (!profile || editingProfile) {
     return (
       <section aria-labelledby="profile-start-title">
-        <p>
-          {profile
-            ? "プロフィールを更新します。"
-            : "まず、この子のプロフィールを登録します。"}
-        </p>
-        <h2 id="profile-start-title">愛犬について教えてください</h2>
+        <p>{profile ? copy.updateProfileIntro : copy.createProfileIntro}</p>
+        <h2 id="profile-start-title">{copy.profileTitle}</h2>
         <label>
-          愛犬の名前
+          {copy.dogName}
           <input
             onChange={(event) => setProfileName(event.target.value)}
             type="text"
@@ -166,7 +167,7 @@ export function GuidedAssessmentForm({
           />
         </label>
         <label>
-          性格メモ（任意）
+          {copy.temperamentNote}
           <textarea
             onChange={(event) => setTemperamentNote(event.target.value)}
             value={temperamentNote}
@@ -177,7 +178,7 @@ export function GuidedAssessmentForm({
           onClick={() => void registerProfile()}
           type="button"
         >
-          {profile ? "プロフィールを更新" : "プロフィールを登録"}
+          {profile ? copy.updateProfile : copy.createProfile}
         </button>
         {status ? <output aria-live="polite">{status}</output> : null}
       </section>
@@ -186,20 +187,20 @@ export function GuidedAssessmentForm({
 
   return (
     <section aria-labelledby="guided-assessment-title">
-      <p>{profile.name}の見立てを始めます</p>
+      <p>{copy.startAssessment(profile.name)}</p>
       <button onClick={() => setEditingProfile(true)} type="button">
-        プロフィールを編集
+        {copy.editProfile}
       </button>
-      <h2 id="guided-assessment-title">いまの反応を観察する</h2>
+      <h2 id="guided-assessment-title">{copy.observationTitle}</h2>
       <label>
-        鳴き方の特徴
+        {copy.barkDescription}
         <textarea
           onChange={(event) => setBarkDescription(event.target.value)}
           value={barkDescription}
         />
       </label>
       <label>
-        直前の出来事（任意）
+        {copy.precedingEvent}
         <input
           onChange={(event) => setPrecedingEvent(event.target.value)}
           type="text"
@@ -207,7 +208,7 @@ export function GuidedAssessmentForm({
         />
       </label>
       <label>
-        人との距離（任意）
+        {copy.distance}
         <input
           onChange={(event) => setDistanceToPerson(event.target.value)}
           type="text"
@@ -215,7 +216,7 @@ export function GuidedAssessmentForm({
         />
       </label>
       <label>
-        状況
+        {copy.context}
         <select
           onChange={(event) =>
             setContext(
@@ -226,15 +227,15 @@ export function GuidedAssessmentForm({
         >
           {contextOptions.map((option) => (
             <option key={option.value} value={option.value}>
-              {option.label}
+              {formCopy[locale].contextOptions[option.value]}
             </option>
           ))}
         </select>
       </label>
       <fieldset>
-        <legend>任意の補助情報</legend>
+        <legend>{copy.optionalEvidence}</legend>
         <label>
-          写真を追加
+          {copy.addPhoto}
           <input
             accept="image/*"
             onChange={(event) => selectImage(event.target.files?.[0])}
@@ -243,7 +244,7 @@ export function GuidedAssessmentForm({
           />
         </label>
         <label>
-          音声を追加（対応時）
+          {copy.addAudio}
           <input
             accept="audio/*"
             disabled={!audioSupported}
@@ -252,22 +253,84 @@ export function GuidedAssessmentForm({
             type="file"
           />
         </label>
-        {!audioSupported ? <p>この環境では音声入力を利用できません。</p> : null}
+        {!audioSupported ? <p>{copy.audioUnavailable}</p> : null}
         {mediaNoticeVisible ? (
           <p>{getErrorMessage("media_privacy_notice", locale)}</p>
         ) : null}
       </fieldset>
       <button
-        disabled={!barkDescription.trim()}
+        disabled={!barkDescription.trim() || isRequesting}
         onClick={() => void requestAssessment()}
         type="button"
       >
-        見立てを依頼
+        {isRequesting ? copy.requestingAssessment : copy.requestAssessment}
       </button>
+      {isRequesting ? (
+        <output aria-live="polite">{copy.requestingAssessment}</output>
+      ) : null}
       {status ? <output aria-live="polite">{status}</output> : null}
     </section>
   );
 }
+
+const formCopy = {
+  en: {
+    addAudio: "Add audio (during response)",
+    addPhoto: "Add photo",
+    audioUnavailable: "Audio input is unavailable in this environment.",
+    barkDescription: "How did the bark sound?",
+    context: "Context",
+    contextOptions: {
+      doorbell: "Doorbell",
+      other: "Other",
+      unknown: "Unknown",
+      visitor: "Visitor",
+    },
+    createProfile: "Create profile",
+    createProfileIntro: "Start by creating this dog's profile.",
+    distance: "Distance from people (optional)",
+    dogName: "Dog's name",
+    editProfile: "Edit profile",
+    observationTitle: "Observe the current response",
+    optionalEvidence: "Optional supporting information",
+    precedingEvent: "What happened just before? (optional)",
+    profileTitle: "Tell us about your dog",
+    requestAssessment: "Request assessment",
+    requestingAssessment: "Preparing assessment…",
+    startAssessment: (name: string) => `Begin ${name}'s assessment`,
+    temperamentNote: "Temperament note (optional)",
+    updateProfile: "Update profile",
+    updateProfileIntro: "Update this profile.",
+  },
+  ja: {
+    addAudio: "音声を追加（対応時）",
+    addPhoto: "写真を追加",
+    audioUnavailable: "この環境では音声入力を利用できません。",
+    barkDescription: "鳴き方の特徴",
+    context: "状況",
+    contextOptions: {
+      doorbell: "チャイム",
+      other: "来客以外",
+      unknown: "状況不明",
+      visitor: "来客",
+    },
+    createProfile: "プロフィールを登録",
+    createProfileIntro: "まず、この子のプロフィールを登録します。",
+    distance: "人との距離（任意）",
+    dogName: "愛犬の名前",
+    editProfile: "プロフィールを編集",
+    observationTitle: "いまの反応を観察する",
+    optionalEvidence: "任意の補助情報",
+    precedingEvent: "直前の出来事（任意）",
+    profileTitle: "愛犬について教えてください",
+    requestAssessment: "見立てを依頼",
+    requestingAssessment: "見立てを準備しています…",
+    startAssessment: (name: string) => `${name}の見立てを始めます`,
+    temperamentNote: "性格メモ（任意）",
+    updateProfile: "プロフィールを更新",
+    updateProfileIntro: "プロフィールを更新します。",
+  },
+} as const;
 
 function readAudioDuration(file: File): Promise<number | undefined> {
   if (

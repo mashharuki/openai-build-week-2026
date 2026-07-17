@@ -31,6 +31,68 @@ const assessment: AssessmentResult = {
 afterEach(cleanup);
 
 describe("GuidedAssessmentForm", () => {
+  it("見立て依頼中はライブな処理中表示と重複送信防止を示す", async () => {
+    let resolveAssessment: (value: unknown) => void = () => undefined;
+    const callTool = vi.fn((name: string) => {
+      if (name === "manage_dog_profile") {
+        return Promise.resolve({
+          profile: {
+            createdAt: "2026-07-17T00:00:00.000Z",
+            id: "dog-1",
+            name: "ココ",
+            temperamentNote: null,
+            updatedAt: "2026-07-17T00:00:00.000Z",
+          },
+          status: "created",
+        });
+      }
+      return new Promise((resolve) => {
+        resolveAssessment = resolve;
+      });
+    });
+    render(
+      <GuidedAssessmentForm
+        callTool={callTool}
+        locale="ja"
+        onAssessment={vi.fn()}
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("愛犬の名前"), {
+      target: { value: "ココ" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "プロフィールを登録" }));
+    await waitFor(() =>
+      expect(screen.getByText("ココの見立てを始めます")).not.toBeNull(),
+    );
+    fireEvent.change(screen.getByLabelText("鳴き方の特徴"), {
+      target: { value: "短く吠えました" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "見立てを依頼" }));
+    expect(
+      screen.getByRole("button", { name: "見立てを準備しています…" }),
+    ).toHaveProperty("disabled", true);
+    expect(screen.getByRole("status")).not.toBeNull();
+    resolveAssessment(assessment);
+  });
+
+  it("英語ではプロフィール開始と入力項目を英語で示す", () => {
+    render(
+      <GuidedAssessmentForm
+        callTool={vi.fn()}
+        locale="en"
+        onAssessment={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Tell us about your dog" }),
+    ).not.toBeNull();
+    expect(screen.getByLabelText("Dog's name")).not.toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Create profile" }),
+    ).not.toBeNull();
+  });
+
   it("個体名がなければ見立てを開始できず、登録後は記述と状況だけで送信できる", async () => {
     const callTool = vi.fn(async (name: string) => {
       if (name === "manage_dog_profile") {

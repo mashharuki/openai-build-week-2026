@@ -46,6 +46,30 @@ afterEach(() => {
 });
 
 describe("ObservationActions", () => {
+  it("観察記録操作のスクリーンリーダーラベルを選択言語に合わせる", () => {
+    const { rerender } = render(
+      <ObservationActions
+        assessment={assessment}
+        callTool={vi.fn()}
+        dogId="dog-1"
+        locale="ja"
+      />,
+    );
+    expect(screen.getByLabelText("確認済み観察の操作")).not.toBeNull();
+
+    rerender(
+      <ObservationActions
+        assessment={assessment}
+        callTool={vi.fn()}
+        dogId="dog-1"
+        locale="en"
+      />,
+    );
+    expect(
+      screen.getByLabelText("Confirmed observation actions"),
+    ).not.toBeNull();
+  });
+
   it("プライバシー確認と飼い主の観察確認後だけ、確認済み事実だけを保存して比較する", async () => {
     const callTool = vi.fn(async (name: string) => {
       if (name === "save_observation") return savedLog;

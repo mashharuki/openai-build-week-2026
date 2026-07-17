@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import type { DogProfile, HistoryComparison } from "@pawlens/shared";
+import type { DogProfile, HistoryComparison, Locale } from "@pawlens/shared";
 
 import { AssessmentCard } from "./assessment-card.js";
 import { GuidedAssessmentForm } from "./guided-assessment-form.js";
@@ -16,37 +16,58 @@ import { type WidgetState, toWidgetState } from "./widget-state.js";
 
 export function WidgetStateView({
   dogName,
+  locale = "ja",
   state,
 }: {
   dogName?: string;
+  locale?: Locale;
   state: WidgetState;
 }) {
   if (state.kind === "empty") {
-    return <p>見立てを始める準備ができました。</p>;
+    return (
+      <p>
+        {locale === "en"
+          ? "Ready to begin an assessment."
+          : "見立てを始める準備ができました。"}
+      </p>
+    );
   }
 
   if (state.kind === "loading") {
-    return <output>見立てを準備しています。</output>;
+    return (
+      <output>
+        {locale === "en"
+          ? "Preparing the assessment."
+          : "見立てを準備しています。"}
+      </output>
+    );
   }
 
   if (state.kind === "error") {
     return (
       <section
-        aria-label="system error"
+        aria-label={locale === "en" ? "System error" : "システムエラー"}
+        data-state="error"
         role="alert"
         style={{ color: "rgb(185, 28, 28)" }}
       >
         <span aria-hidden="true">!</span>
-        <h2>システムエラー</h2>
+        <h2>{locale === "en" ? "System error" : "システムエラー"}</h2>
         <p>{state.message}</p>
       </section>
     );
   }
 
-  return <AssessmentCard assessment={state.assessment} dogName={dogName} />;
+  return (
+    <AssessmentCard
+      assessment={state.assessment}
+      dogName={dogName}
+      locale={locale}
+    />
+  );
 }
 
-export function HelloWidget() {
+export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
   const [dogId, setDogId] = useState<string>();
   const [history, setHistory] = useState<HistoryComparison>();
   const [profile, setProfile] = useState<DogProfile>();
@@ -77,7 +98,16 @@ export function HelloWidget() {
   }, []);
 
   return (
-    <main aria-live="polite">
+    <main
+      aria-live="polite"
+      data-motion={
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+          ? "reduced"
+          : "full"
+      }
+      lang={locale}
+    >
       <h1>PawLens</h1>
       {state.kind === "success" ? (
         <AssessmentCard
@@ -88,7 +118,7 @@ export function HelloWidget() {
                 callTool={getToolCaller(window.openai ?? {})}
                 dogId={dogId}
                 dogName={profile?.name}
-                locale="ja"
+                locale={locale}
                 onHistoryComparison={setHistory}
               />
             ) : null
@@ -96,14 +126,19 @@ export function HelloWidget() {
           assessment={state.assessment}
           dogName={profile?.name}
           history={history}
+          locale={locale}
         />
       ) : (
-        <WidgetStateView dogName={profile?.name} state={state} />
+        <WidgetStateView
+          dogName={profile?.name}
+          locale={locale}
+          state={state}
+        />
       )}
       <GuidedAssessmentForm
         audioSupported={window.openai?.capabilities?.audioEvidence === true}
         callTool={getToolCaller(window.openai ?? {})}
-        locale="ja"
+        locale={locale}
         onDogId={setDogId}
         onProfileChange={setProfile}
         onAssessment={(assessment) => setState({ assessment, kind: "success" })}

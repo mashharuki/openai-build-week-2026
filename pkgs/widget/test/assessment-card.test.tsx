@@ -106,11 +106,32 @@ describe("AssessmentCard", () => {
   it("結果エラーは緊急案内と異なるシステムエラーとして表示する", () => {
     render(<AssessmentCard assessment={{ ...assessment, status: "error" }} />);
 
-    expect(screen.getByLabelText("system error")).not.toBeNull();
+    expect(screen.getByLabelText("システムエラー")).not.toBeNull();
     expect(
       screen.getByRole("heading", { name: "システムエラー" }),
     ).not.toBeNull();
     expect(screen.getByRole("alert").style.color).toBe("rgb(185, 28, 28)");
     expect(screen.queryByText("緊急の安全案内")).toBeNull();
+  });
+
+  it("英語でも仮説、限界、観察、次の一手、追加質問を一貫して表示する", () => {
+    render(<AssessmentCard assessment={assessment} locale="en" />);
+
+    expect(screen.getByRole("heading", { name: "Assessment" })).not.toBeNull();
+    expect(screen.getByText("Primary possibility")).not.toBeNull();
+    expect(screen.getByText("Confidence: low")).not.toBeNull();
+    expect(screen.getByText("Limits of this assessment")).not.toBeNull();
+    expect(screen.getByText("What to check next")).not.toBeNull();
+    expect(screen.getByText("A calm next step")).not.toBeNull();
+    expect(screen.getByRole("button", { name: "Show details" })).not.toBeNull();
+  });
+
+  it("詳細操作はキーボードでフォーカスでき、色以外の状態ラベルを持つ", () => {
+    render(<AssessmentCard assessment={assessment} />);
+
+    const button = screen.getByRole("button", { name: "詳細を表示" });
+    button.focus();
+    expect(document.activeElement).toBe(button);
+    expect(screen.getByText("確信度: 低")).not.toBeNull();
   });
 });
