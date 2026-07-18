@@ -71,7 +71,37 @@ ChatGPT と Inspector で指定する URL は、必ず末尾に `/mcp` を付け
 https://<worker>.<subdomain>.workers.dev/mcp
 ```
 
-この Worker は現状、モデル実行アダプタを環境へ接続していません。そのため接続確認には `show_pawlens_hello` を使ってください。`analyze_dog_signal` を本番で有効にするには、別途 `ModelGateway` の実装と安全な認証・シークレット設定が必要です。秘密値を `wrangler.toml` やリポジトリへ書き込まないでください。
+### OpenAI APIキーを Workers Secret に登録する
+
+`analyze_dog_signal` は OpenAI Responses API を利用します。本番で有効にするには、**デプロイ済みの Worker に** `OPENAI_API_KEY` を Workers Secret として登録してください。ローカルの `.env.local` は Cloudflare へ自動同期されません。秘密値を `wrangler.toml` やリポジトリへ書き込まないでください。
+
+```sh
+pnpm --filter @pawlens/mcpserver exec wrangler secret put OPENAI_API_KEY
+```
+
+プロンプトが表示されたら API キーを貼り付けて確定します。登録後は、値を表示せず名前だけを確認します。
+
+```sh
+pnpm --filter @pawlens/mcpserver exec wrangler secret list
+```
+
+出力に `OPENAI_API_KEY` が含まれれば登録完了です。含まれない場合、`analyze_dog_signal` は安全なエラー応答へフォールバックします。
+
+## Cloudflare Workers のログを確認する
+
+デプロイ済み Worker の実行ログは、別ターミナルで次のコマンドを実行してリアルタイムに取得できます。終了するには `Ctrl+C` を押します。
+
+```sh
+pnpm --filter @pawlens/mcpserver exec wrangler tail pawlens-mcpserver
+```
+
+エラーだけに絞る場合は、`--status error` を追加します。
+
+```sh
+pnpm --filter @pawlens/mcpserver exec wrangler tail pawlens-mcpserver --status error
+```
+
+認証が求められた場合は、先に `pnpm --filter @pawlens/mcpserver exec wrangler login` を実行してください。ログには秘密値や添付のURLを出力しないでください。
 
 ## MCP Inspector で検証する
 
