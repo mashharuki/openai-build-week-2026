@@ -1,0 +1,10 @@
+{
+  "tool": "show_pawlens_hello",
+  "requests": [
+    {
+      "name": "render-hello-widget",
+      "expectedSchemaValidity": true,
+      "input": {}
+    }
+  ]
+}

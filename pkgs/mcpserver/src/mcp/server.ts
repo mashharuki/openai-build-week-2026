@@ -87,12 +87,12 @@ export function createRuntimeAssessmentService(
 
 export function createMcpRuntime(
   dependencies: WorkerRuntimeDependencies,
+  scope = createConversationScope(),
 ): McpRuntime {
   const server = new McpServer({
     name: "pawlens-mcpserver",
     version: "0.0.0",
   });
-  const scope = createConversationScope();
   const transport = new StreamableHTTPTransport({
     sessionIdGenerator: () => scope,
   });

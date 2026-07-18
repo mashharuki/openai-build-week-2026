@@ -1,0 +1,45 @@
+{
+  "tool": "get_dog_history",
+  "requests": [
+    {
+      "name": "no-client-held-logs-yet",
+      "expectedSchemaValidity": true,
+      "input": {
+        "dogId": "dog-coco",
+        "recentLogs": []
+      }
+    },
+    {
+      "name": "two-confirmed-observations",
+      "expectedSchemaValidity": true,
+      "input": {
+        "dogId": "dog-coco",
+        "recentLogs": [
+          {
+            "chosenAction": "距離を取る",
+            "conversationId": "session-owner",
+            "dogId": "dog-coco",
+            "id": "log-1",
+            "observedCues": ["耳が後ろを向いた"],
+            "recordedAt": "2026-07-18T00:00:00.000Z"
+          },
+          {
+            "chosenAction": "別室へ誘導する",
+            "conversationId": "session-owner",
+            "dogId": "dog-coco",
+            "id": "log-2",
+            "observedCues": ["体が硬くなった"],
+            "recordedAt": "2026-07-18T00:05:00.000Z"
+          }
+        ]
+      }
+    },
+    {
+      "name": "reject-missing-recent-logs",
+      "expectedSchemaValidity": false,
+      "input": {
+        "dogId": "dog-coco"
+      }
+    }
+  ]
+}

@@ -71,6 +71,37 @@ describe("HelloWidget", () => {
     );
   });
 
+  it("プロフィール管理ツールの結果を見立て結果として扱わない", () => {
+    render(<HelloWidget />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          data: {
+            jsonrpc: "2.0",
+            method: "ui/notifications/tool-result",
+            params: {
+              structuredContent: {
+                profile: {
+                  createdAt: "2026-07-16T00:00:00.000Z",
+                  id: "dog-1",
+                  name: "ノア",
+                  temperamentNote: "やんちゃ",
+                  updatedAt: "2026-07-16T00:00:00.000Z",
+                },
+                status: "created",
+              },
+            },
+          },
+          source: window.parent,
+        }),
+      );
+    });
+
+    expect(screen.getByText("見立てを始める準備ができました。")).not.toBeNull();
+    expect(screen.queryByLabelText("システムエラー")).toBeNull();
+  });
+
   it("empty、loading、成功、システムエラー、緊急を区別して表示する", () => {
     const { rerender } = render(<WidgetStateView state={{ kind: "empty" }} />);
     expect(screen.getByText("見立てを始める準備ができました。")).not.toBeNull();

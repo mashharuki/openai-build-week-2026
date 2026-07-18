@@ -4,6 +4,9 @@ export interface ModelGateway {
 
 export interface WorkerBindings {
   ASSETS: Fetcher;
+  MCP_SESSIONS?: {
+    getByName(name: string): { fetch(request: Request): Promise<Response> };
+  };
   PAWLENS_KV: KVNamespace;
 }
 

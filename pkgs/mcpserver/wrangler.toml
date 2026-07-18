@@ -10,3 +10,10 @@ binding = "ASSETS"
 binding = "PAWLENS_KV"
 id = "50daed1ed1314977996a84027e01aeca"
 preview_id = "6a96b29f7e6e45f580a7e0bb92be5be7"
+
+[durable_objects]
+bindings = [{ name = "MCP_SESSIONS", class_name = "PawLensMcpSession" }]
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["PawLensMcpSession"]

@@ -1,0 +1,33 @@
+{
+  "tool": "save_observation",
+  "requests": [
+    {
+      "name": "save-confirmed-owner-observation",
+      "expectedSchemaValidity": true,
+      "input": {
+        "chosenAction": "玄関から距離を取り、落ち着ける部屋へ誘導する",
+        "dogId": "dog-coco",
+        "observedCues": ["耳が後ろを向いた", "体が少し硬くなった"]
+      }
+    },
+    {
+      "name": "reject-empty-observations",
+      "expectedSchemaValidity": false,
+      "input": {
+        "chosenAction": "距離を取る",
+        "dogId": "dog-coco",
+        "observedCues": []
+      }
+    },
+    {
+      "name": "reject-model-hypothesis-field",
+      "expectedSchemaValidity": false,
+      "input": {
+        "chosenAction": "距離を取る",
+        "dogId": "dog-coco",
+        "hypothesis": "警戒している",
+        "observedCues": ["耳が後ろを向いた"]
+      }
+    }
+  ]
+}

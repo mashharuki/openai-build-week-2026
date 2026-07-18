@@ -121,4 +121,36 @@ describe("createApp", () => {
     expect(firstRuntime.handleRequest).toHaveBeenCalledTimes(1);
     expect(secondRuntime.handleRequest).toHaveBeenCalledTimes(1);
   });
+
+  it("Durable Object が設定されている場合は MCP セッションを同じインスタンスへ転送する", async () => {
+    const fetchSession = vi.fn(
+      async (_request: Request) => new Response("proxied", { status: 202 }),
+    );
+    const getByName = vi.fn(() => ({ fetch: fetchSession }));
+    const app = createApp({
+      createMcpRuntime: createRuntime,
+      createWorkerDependencies: () => ({
+        assets: {} as Fetcher,
+        kv: {} as KVNamespace,
+        model: { generateStructured: vi.fn() },
+      }),
+    });
+
+    const response = await app.fetch(
+      new Request("https://pawlens.example/mcp", {
+        headers: { "mcp-session-id": "session-owner" },
+        method: "POST",
+      }),
+      { MCP_SESSIONS: { getByName } },
+    );
+
+    expect(response.status).toBe(202);
+    expect(getByName).toHaveBeenCalledWith("session-owner");
+    expect(fetchSession).toHaveBeenCalledTimes(1);
+    const forwardedRequest = fetchSession.mock.calls[0]![0];
+    expect(forwardedRequest.headers.get("mcp-session-id")).toBe("session-owner");
+    expect(forwardedRequest.headers.get("x-pawlens-session-id")).toBe(
+      "session-owner",
+    );
+  });
 });

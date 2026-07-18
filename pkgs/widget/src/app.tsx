@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 
-import type { DogProfile, HistoryComparison, Locale } from "@pawlens/shared";
+import {
+  AssessmentResultSchema,
+  type DogProfile,
+  type HistoryComparison,
+  type Locale,
+} from "@pawlens/shared";
 
 import { AssessmentCard } from "./assessment-card.js";
 import { GuidedAssessmentForm } from "./guided-assessment-form.js";
@@ -13,7 +18,7 @@ import {
   startMcpAppsBridge,
 } from "./openai-runtime.js";
 
-import { type WidgetState, toWidgetState } from "./widget-state.js";
+import type { WidgetState } from "./widget-state.js";
 
 export function WidgetStateView({
   dogName,
@@ -87,8 +92,9 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
       if (toolInputDogId) {
         setDogId(toolInputDogId);
       }
-      if (nextContent !== undefined) {
-        setState(toWidgetState(nextContent));
+      const assessment = AssessmentResultSchema.safeParse(nextContent);
+      if (assessment.success) {
+        setState({ assessment: assessment.data, kind: "success" });
       }
     };
 

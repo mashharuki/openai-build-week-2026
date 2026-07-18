@@ -1,0 +1,75 @@
+{
+  "tool": "analyze_dog_signal",
+  "requests": [
+    {
+      "name": "description-only-visitor",
+      "expectedSchemaValidity": true,
+      "input": {
+        "audio": null,
+        "barkDescription": "玄関のチャイム直後に、短く鋭い声で3回吠えました。",
+        "context": "visitor",
+        "distanceToPerson": "玄関から2メートル",
+        "dogId": "dog-coco",
+        "image": null,
+        "locale": "ja",
+        "precedingEvent": "チャイムが鳴り、来客が見えました"
+      }
+    },
+    {
+      "name": "apps-sdk-image-and-audio",
+      "expectedSchemaValidity": true,
+      "input": {
+        "audio": {
+          "download_url": "https://files.example/bark.wav",
+          "duration_seconds": 4,
+          "file_id": "file-audio-1",
+          "file_name": "bark.wav",
+          "mime_type": "audio/wav"
+        },
+        "barkDescription": "低い声で間を空けて吠えました。",
+        "context": "doorbell",
+        "distanceToPerson": null,
+        "dogId": "dog-coco",
+        "image": {
+          "download_url": "https://files.example/coco.jpg",
+          "file_id": "file-image-1",
+          "file_name": "coco.jpg",
+          "mime_type": "image/jpeg"
+        },
+        "locale": "ja",
+        "precedingEvent": "インターホンの音"
+      }
+    },
+    {
+      "name": "reject-missing-description",
+      "expectedSchemaValidity": false,
+      "input": {
+        "audio": null,
+        "barkDescription": "",
+        "context": "unknown",
+        "distanceToPerson": null,
+        "dogId": "dog-coco",
+        "image": null,
+        "locale": "ja",
+        "precedingEvent": null
+      }
+    },
+    {
+      "name": "reject-file-without-download-url",
+      "expectedSchemaValidity": false,
+      "input": {
+        "audio": {
+          "file_id": "file-audio-1",
+          "mime_type": "audio/wav"
+        },
+        "barkDescription": "短く吠えました。",
+        "context": "unknown",
+        "distanceToPerson": null,
+        "dogId": "dog-coco",
+        "image": null,
+        "locale": "ja",
+        "precedingEvent": null
+      }
+    }
+  ]
+}

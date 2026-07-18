@@ -1,0 +1,42 @@
+{
+  "tool": "manage_dog_profile",
+  "requests": [
+    {
+      "name": "create-profile",
+      "expectedSchemaValidity": true,
+      "input": {
+        "action": "create",
+        "name": "ココ",
+        "temperamentNote": "初対面の人には少し慎重です。"
+      }
+    },
+    {
+      "name": "update-profile",
+      "expectedSchemaValidity": true,
+      "input": {
+        "action": "update",
+        "dogId": "dog-coco",
+        "name": "ココ",
+        "temperamentNote": null
+      }
+    },
+    {
+      "name": "confirmed-delete",
+      "expectedSchemaValidity": true,
+      "input": {
+        "action": "delete",
+        "confirmed": true,
+        "dogId": "dog-coco"
+      }
+    },
+    {
+      "name": "reject-unconfirmed-delete",
+      "expectedSchemaValidity": false,
+      "input": {
+        "action": "delete",
+        "confirmed": false,
+        "dogId": "dog-coco"
+      }
+    }
+  ]
+}
