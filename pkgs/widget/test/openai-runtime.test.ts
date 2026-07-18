@@ -53,6 +53,23 @@ describe("getStructuredContentFromBridgeMessage", () => {
     ).toBe("dog-1");
   });
 
+  it("Apps SDKのcallTool結果ラッパーからstructuredContentを取り出す", async () => {
+    const callTool = vi.fn(async () => ({
+      content: [],
+      structuredContent: {
+        profile: { id: "dog-1", name: "ココ" },
+        status: "created",
+      },
+    }));
+
+    await expect(
+      getToolCaller({ callTool })("manage_dog_profile", { action: "create" }),
+    ).resolves.toEqual({
+      profile: { id: "dog-1", name: "ココ" },
+      status: "created",
+    });
+  });
+
   it("MCP Apps bridgeのツール結果通知から構造化結果を取り出す", () => {
     expect(
       getStructuredContentFromBridgeMessage({

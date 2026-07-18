@@ -75,7 +75,26 @@ export function getToolCaller(
     };
   }
 
-  return (name, input) => callTool(name, input);
+  return async (name, input) =>
+    unwrapStructuredToolResult(await callTool(name, input));
+}
+
+/**
+ * The Apps SDK returns direct widget calls as a tool-result envelope. Keep
+ * callers independent of that transport detail while retaining compatibility
+ * with local hosts that return structured content directly.
+ */
+function unwrapStructuredToolResult(result: unknown): unknown {
+  if (
+    result &&
+    typeof result === "object" &&
+    !Array.isArray(result) &&
+    "structuredContent" in result
+  ) {
+    return (result as { structuredContent: unknown }).structuredContent;
+  }
+
+  return result;
 }
 
 export function getDogIdFromToolInputMessage(
