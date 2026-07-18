@@ -31,6 +31,8 @@ export function toWidgetState(content: unknown): WidgetState {
     return { kind: "loading" };
   }
 
+  // Tool results cross the host boundary. Render a contained error instead of
+  // trusting an unexpected payload or trying to display partial fields.
   const result = AssessmentResultSchema.safeParse(content);
   return result.success
     ? { assessment: result.data, kind: "success" }

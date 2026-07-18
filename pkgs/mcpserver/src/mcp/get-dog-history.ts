@@ -29,6 +29,8 @@ export function registerGetDogHistory(
     },
     async (input) => {
       const request = GetDogHistoryInputSchema.parse(input);
+      // This result is a runtime probe outcome, never a model-provided input.
+      // HistoryDiff returns unavailable when a stable conversation is unproven.
       const comparison = await history.compare(scope, {
         ...request,
         conversationStable,

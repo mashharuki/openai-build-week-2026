@@ -193,6 +193,8 @@ export function applyGuardrails(
   candidate: unknown,
   context: GuardrailContext,
 ): GuardrailResult {
+  // Structured model output is still untrusted input: schema validity cannot
+  // enforce PawLens's non-diagnostic and safety requirements on its own.
   const parsed = AssessmentResultSchema.safeParse(candidate);
 
   if (!parsed.success || containsProhibitedContent(parsed.data)) {
@@ -205,6 +207,8 @@ export function applyGuardrails(
   );
 
   if (containsUrgencySignal(safeCandidate)) {
+    // Urgent signals replace normal advice with distance and professional
+    // support guidance, even when the model suggested another action.
     return safeResult(
       withUrgencyGuidance(safeCandidate, context.locale),
       context.locale,
@@ -227,6 +231,8 @@ export function applyGuardrails(
     return safeResult(safeCandidate, context.locale);
   }
 
+  // Non-calibrated contexts are observation prompts, not a basis for a
+  // visitor-specific interpretation.
   return safeResult(
     withLowConfidenceCalibration(
       safeCandidate,

@@ -132,6 +132,8 @@ export function GuidedAssessmentForm({
     }
     if (fileUploader) {
       try {
+        // ChatGPT authorizes uploads and returns a short-lived download URL.
+        // Never substitute a browser filename when that authorization fails.
         setImage((await fileUploader(file)) ?? null);
       } catch {
         setImage(null);
@@ -169,6 +171,8 @@ export function GuidedAssessmentForm({
 
     if (fileUploader) {
       try {
+        // Audio needs the measured duration as well as host authorization so
+        // the server can keep its evidence-duration guardrail deterministic.
         setAudio((await fileUploader(file, durationSeconds)) ?? null);
       } catch {
         setAudio(null);

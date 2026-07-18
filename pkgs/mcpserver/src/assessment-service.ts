@@ -84,6 +84,8 @@ export function createAssessmentService(
       const observations = (
         await dependencies.observations.list(scope, signal.dogId)
       ).filter(
+        // Assessment context must never mix another dog's facts or a different
+        // server-generated scope, even if a repository returns stale data.
         (observation) =>
           observation.conversationId === scope &&
           observation.dogId === signal.dogId,
@@ -95,6 +97,8 @@ export function createAssessmentService(
         research: getResearchContext(signal.context),
       };
 
+      // One repair attempt bounds model interaction. Raw model output is never
+      // returned to the owner, regardless of whether repair succeeds.
       for (const repair of [false, true]) {
         let generated: ModelCandidateResult | undefined;
         try {
@@ -232,6 +236,8 @@ function withPartialEvidence(
     return assessment;
   }
 
+  // Keep a safe assessment when optional media fails, but make the limitation
+  // explicit instead of allowing unavailable evidence to look valid.
   const guidance = evidence.messages.join(" ");
   const additionalQuestion =
     assessment.additionalQuestion ??

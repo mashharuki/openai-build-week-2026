@@ -26,6 +26,8 @@ const defaultDependencies: AppDependencies = {
     assets: bindings.ASSETS,
     kv: bindings.PAWLENS_KV,
     model: {
+      // A deployment must explicitly replace this boundary. Failing closed is
+      // safer than accidentally treating an unavailable model as a diagnosis.
       generateStructured: async () => {
         throw new Error("The model adapter has not been configured.");
       },
@@ -82,6 +84,8 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
           context.body(null, 204)
         );
       } finally {
+        // Streamable HTTP clients own session lifetime; do not retain an
+        // in-memory scope after their explicit disconnect.
         await activeRuntime.close();
         if (requestedSessionId) {
           runtimes.delete(requestedSessionId);
@@ -94,6 +98,8 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
     const createdSessionId = activeRuntime.sessionId();
 
     if (!requestedSessionId && createdSessionId) {
+      // This ID scopes server storage, but it is not proof of a stable ChatGPT
+      // conversation ID; history comparison probes that separately.
       runtimes.set(createdSessionId, activeRuntime);
     }
 

@@ -16,6 +16,8 @@ export function registerSaveObservation(
     "save_observation",
     {
       _meta: {
+        // The model must not persist its own hypothesis as an owner-confirmed
+        // observation, so this write path is callable only from the widget.
         "openai/widgetAccessible": true,
         ui: { visibility: ["app"] },
       },

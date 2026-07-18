@@ -76,6 +76,8 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
 
   useEffect(() => {
     const onMessage = (event: MessageEvent<unknown>) => {
+      // Only the embedding MCP Apps host may update tool state or supply an
+      // owner-selected dog ID; ignore messages from arbitrary frames.
       if (event.source !== window.parent) {
         return;
       }
@@ -138,6 +140,8 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
       )}
       <GuidedAssessmentForm
         audioSupported={
+          // File helpers are optional ChatGPT extensions. The description-led
+          // flow remains usable when the host cannot authorize uploads.
           typeof window.openai?.uploadFile === "function" &&
           typeof window.openai?.getFileDownloadUrl === "function"
         }

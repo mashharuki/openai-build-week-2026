@@ -14,6 +14,8 @@ export function createModelAdapter(gateway: ModelGateway): ModelAdapter {
   return {
     async generate(input) {
       const candidate = await gateway.generateStructured(input);
+      // Do not leak malformed output into structuredContent or the widget;
+      // AssessmentService owns the bounded repair and fallback policy.
       const result = AssessmentResultSchema.safeParse(candidate);
 
       if (!result.success) {

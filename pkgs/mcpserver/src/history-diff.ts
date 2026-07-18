@@ -83,6 +83,8 @@ export function createHistoryDiff(
   return {
     async compare(scope, input) {
       if (!input.conversationStable) {
+        // A transport session is not enough to prove a ChatGPT conversation;
+        // withholding a comparison is safer than inventing a cross-turn diff.
         return HistoryComparisonSchema.parse(
           UNAVAILABLE_FOR_UNSTABLE_CONVERSATION,
         );
@@ -97,6 +99,8 @@ export function createHistoryDiff(
         scope,
         input.dogId,
       );
+      // KV is eventually consistent. Merge the widget's just-saved logs, then
+      // deduplicate by ID so a second-round comparison is deterministic.
       const logs = sortLogs(
         dedupeObservationLogs([...recentLogs, ...persistedLogs]),
       );

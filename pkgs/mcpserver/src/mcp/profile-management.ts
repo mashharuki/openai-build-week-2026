@@ -52,6 +52,8 @@ export function registerManageDogProfile(
           : profileNotFound();
       }
 
+      // The schema requires `confirmed: true`; descriptor annotations inform
+      // clients but do not enforce intent within a server handler.
       const deleted = await profiles.delete(scope, operation);
 
       return deleted

@@ -19,6 +19,8 @@ export interface ObservationService {
 }
 
 function observationPrefix(scope: ConversationScope, dogId: string): string {
+  // Profiles and observations share the same scope/dog namespace so deletion
+  // can cascade through this prefix without scanning another conversation.
   return `owner:${scope}:dog:${dogId}:observation:`;
 }
 
@@ -65,6 +67,8 @@ export function createObservationService(
     dogId: string,
   ): Promise<void> {
     const keys = await observationKeys(scope, dogId);
+    // Profile deletion owns the lifetime of its confirmed observations; an
+    // assessment is intentionally never stored in this key space.
     await Promise.all(keys.map((key) => dependencies.kv.delete(key)));
   }
 
@@ -81,6 +85,8 @@ export function createObservationService(
         throw new Error("Profile not found in this conversation scope.");
       }
 
+      // The service, not tool input, owns the scope, record ID, and timestamp.
+      // This prevents callers from forging history for another scope.
       const log = ObservationLogSchema.parse({
         ...observation,
         conversationId: scope,

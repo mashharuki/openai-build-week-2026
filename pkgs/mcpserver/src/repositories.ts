@@ -41,6 +41,8 @@ export function createConversationScope(
 }
 
 function profileKey(scope: ConversationScope, dogId: string): string {
+  // Scope precedes dog ID so identical user-provided IDs cannot cross the
+  // server-owned conversation boundary in KV.
   return `owner:${scope}:dog:${dogId}`;
 }
 

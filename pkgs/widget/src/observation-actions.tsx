@@ -64,6 +64,8 @@ export function ObservationActions({
       return;
     }
 
+    // Workers KV may not reflect the write immediately. Keep its validated
+    // response locally so HistoryDiff can perform a read-your-writes merge.
     const nextLogs = [
       ...recentLogs.filter((log) => log.id !== parsed.data.id),
       parsed.data,
@@ -114,6 +116,8 @@ export function ObservationActions({
       return;
     }
 
+    // Clear client-held facts only after the server confirms the cascading
+    // deletion, avoiding a misleading success state after a failed request.
     setRecentLogs([]);
     setConfirmedCues([]);
     setStatus(copy.deleted);
