@@ -17,9 +17,9 @@ interface BridgeHost {
 export interface OpenAiToolHost {
   capabilities?: { audioEvidence?: boolean };
   callTool?: (name: string, arguments_: unknown) => Promise<unknown>;
-  getFileDownloadUrl?: (
-    input: { fileId: string },
-  ) => Promise<{ downloadUrl: string } | string>;
+  getFileDownloadUrl?: (input: { fileId: string }) => Promise<
+    { downloadUrl: string } | string
+  >;
   uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
 }
 

@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-    createConversationScope,
-    createProfileRepository,
+  createConversationScope,
+  createProfileRepository,
 } from "../src/repositories.js";
 
 class InMemoryKv {

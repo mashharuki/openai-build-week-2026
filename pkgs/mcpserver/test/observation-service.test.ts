@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { createObservationService } from "../src/observation-service.js";
 import {
-    createConversationScope,
-    createProfileRepository,
+  createConversationScope,
+  createProfileRepository,
 } from "../src/repositories.js";
 
 class InMemoryKv {

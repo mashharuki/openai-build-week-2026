@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-    createAppsSdkFileUploader,
-    getDogIdFromToolInputMessage,
-    getStructuredContentFromBridgeMessage,
-    getToolCaller,
-    startMcpAppsBridge,
+  createAppsSdkFileUploader,
+  getDogIdFromToolInputMessage,
+  getStructuredContentFromBridgeMessage,
+  getToolCaller,
+  startMcpAppsBridge,
 } from "../src/openai-runtime.js";
 
 describe("getStructuredContentFromBridgeMessage", () => {
@@ -41,12 +41,16 @@ describe("getStructuredContentFromBridgeMessage", () => {
 
   it("Apps SDKのcallToolとtool-inputから、明示操作に必要な型付き経路を提供する", async () => {
     const callTool = vi.fn(async () => ({ ok: true }));
-    await expect(getToolCaller({ callTool })("save_observation", { dogId: "dog-1" })).resolves.toEqual({ ok: true });
-    expect(getDogIdFromToolInputMessage({
-      jsonrpc: "2.0",
-      method: "ui/notifications/tool-input",
-      params: { input: { dogId: "dog-1" } },
-    })).toBe("dog-1");
+    await expect(
+      getToolCaller({ callTool })("save_observation", { dogId: "dog-1" }),
+    ).resolves.toEqual({ ok: true });
+    expect(
+      getDogIdFromToolInputMessage({
+        jsonrpc: "2.0",
+        method: "ui/notifications/tool-input",
+        params: { input: { dogId: "dog-1" } },
+      }),
+    ).toBe("dog-1");
   });
 
   it("MCP Apps bridgeのツール結果通知から構造化結果を取り出す", () => {
