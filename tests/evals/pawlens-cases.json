@@ -1,0 +1,183 @@
+{
+  "cases": [
+    {
+      "id": "visitor",
+      "type": "guardrail",
+      "locale": "ja",
+      "context": "visitor",
+      "expected": {
+        "confidence": "medium",
+        "status": "success",
+        "limitationIncludes": "専門的な判断の代替ではありません"
+      }
+    },
+    {
+      "id": "other-context",
+      "type": "guardrail",
+      "locale": "ja",
+      "context": "other",
+      "expected": {
+        "confidence": "low",
+        "status": "partial",
+        "limitationIncludes": "来客場面ほど較正",
+        "questionIncludes": "身体サイン"
+      }
+    },
+    {
+      "id": "input-missing",
+      "type": "guardrail",
+      "locale": "en",
+      "context": "visitor",
+      "input": { "missingInformation": ["bark_description"] },
+      "expected": {
+        "confidence": "low",
+        "status": "partial",
+        "limitationIncludes": "Missing information",
+        "questionIncludes": "bark description"
+      }
+    },
+    {
+      "id": "urgent",
+      "type": "guardrail",
+      "locale": "ja",
+      "context": "visitor",
+      "input": { "observationPoints": ["過度の震え"] },
+      "expected": {
+        "confidence": "low",
+        "status": "urgent",
+        "actionIncludes": "安全を優先"
+      }
+    },
+    {
+      "id": "unusable-image-and-audio",
+      "type": "evidence",
+      "locale": "ja",
+      "input": {
+        "audioDurationSeconds": 0.5,
+        "imageMimeType": "application/pdf"
+      },
+      "expected": {
+        "state": "partial",
+        "messages": [
+          "視覚的な手がかり",
+          "利用できた根拠だけで見立てました。",
+          "音声を録り直すか、吠え方の記述と状況を補足してください。"
+        ]
+      }
+    },
+    {
+      "id": "second-comparison",
+      "type": "history",
+      "expected": { "status": "available" }
+    },
+    {
+      "id": "ja-card",
+      "type": "card",
+      "locale": "ja",
+      "input": {
+        "cardContent": {
+          "primaryHypothesis": "警戒している可能性",
+          "rationale": "来客直後の反応です。",
+          "limitations": "観察だけでは断定できません。",
+          "observationPoint": "耳の向き",
+          "suggestedAction": "玄関から距離を取ります。",
+          "additionalQuestion": "耳の向きを確認できますか？"
+        }
+      },
+      "expected": {
+        "messages": [
+          "警戒している可能性",
+          "来客直後の反応です。",
+          "観察だけでは断定できません。",
+          "耳の向きを飼い主自身で確認してください。",
+          "玄関から距離を取ります。",
+          "耳の向きを確認できますか？"
+        ]
+      }
+    },
+    {
+      "id": "en-card",
+      "type": "card",
+      "locale": "en",
+      "input": {
+        "cardContent": {
+          "primaryHypothesis": "A possibility of vigilance",
+          "rationale": "The response began immediately after the visitor arrived.",
+          "limitations": "A brief observation cannot establish the reason.",
+          "observationPoint": "Ear direction",
+          "suggestedAction": "Create distance from the entrance.",
+          "additionalQuestion": "Can you check the ear direction?"
+        }
+      },
+      "expected": {
+        "messages": [
+          "A possibility of vigilance",
+          "The response began immediately after the visitor arrived.",
+          "A brief observation cannot establish the reason.",
+          "Please check Ear direction yourself.",
+          "Create distance from the entrance.",
+          "Can you check the ear direction?"
+        ]
+      }
+    },
+    {
+      "id": "empty-state",
+      "type": "state",
+      "locale": "ja",
+      "expected": {
+        "message": "見立てを始める準備ができました。",
+        "state": "empty"
+      }
+    },
+    {
+      "id": "loading-state",
+      "type": "state",
+      "locale": "en",
+      "expected": { "message": "Preparing the assessment.", "state": "loading" }
+    },
+    {
+      "id": "success-state",
+      "type": "state",
+      "locale": "ja",
+      "expected": { "message": "警戒している可能性", "state": "success" }
+    },
+    {
+      "id": "partial-state",
+      "type": "state",
+      "locale": "ja",
+      "expected": { "message": "警戒している可能性", "state": "partial" }
+    },
+    {
+      "id": "urgent-state",
+      "type": "state",
+      "locale": "ja",
+      "expected": { "message": "緊急の安全案内", "state": "urgent" }
+    },
+    {
+      "id": "error-state",
+      "type": "state",
+      "locale": "ja",
+      "expected": { "message": "システムエラー", "state": "error" }
+    },
+    {
+      "id": "privacy-and-media-notices",
+      "type": "notices",
+      "locale": "ja",
+      "expected": {
+        "messages": [
+          "この機能に必要なプロフィールと飼い主が確認した観察だけを保存します。保存期間は削除するまでです。いつでも削除でき、第三者には提供しません。",
+          "写真や音声には個人情報が含まれる可能性があります。見立ての一時的な根拠としてのみ扱います。"
+        ]
+      }
+    },
+    {
+      "id": "profile-deletion",
+      "type": "deletion",
+      "locale": "ja",
+      "expected": {
+        "message": "この犬の保存済み観察も削除されることを確認しました",
+        "messages": ["プロフィールと保存済み観察を削除しました。"]
+      }
+    }
+  ]
+}

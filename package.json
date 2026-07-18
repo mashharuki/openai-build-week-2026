@@ -6,7 +6,8 @@
     "format" : "biome format --write .",
     "build": "pnpm --filter './pkgs/**' --if-present run build",
     "lint": "biome check pkgs tests",
-    "test": "pnpm run test:workspace && pnpm --filter './pkgs/**' --if-present run test",
+    "test": "pnpm run test:workspace && pnpm run test:e2e && pnpm --filter './pkgs/**' --if-present run test",
+    "test:e2e": "vitest run tests/e2e",
     "test:workspace": "node --test tests/workspace.test.mjs",
     "typecheck": "pnpm --filter './pkgs/**' --if-present run typecheck"
   },
