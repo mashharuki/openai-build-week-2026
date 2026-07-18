@@ -64,6 +64,7 @@ describe("registerAnalyzeDogSignal", () => {
         annotations: {
           destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
       }),

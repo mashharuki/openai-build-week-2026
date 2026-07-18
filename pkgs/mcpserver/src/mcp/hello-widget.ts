@@ -1,4 +1,5 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { WidgetGreetingSchema } from "@pawlens/shared";
 
 /**
  * The URI is a ChatGPT cache key. Bump it whenever the template contract or
@@ -62,9 +63,16 @@ export function registerHelloWidget(server: McpServer, assets: Fetcher): void {
         ui: { resourceUri: HELLO_WIDGET_RESOURCE_URI },
         "openai/outputTemplate": HELLO_WIDGET_RESOURCE_URI,
       },
+      annotations: {
+        destructiveHint: false,
+        idempotentHint: true,
+        openWorldHint: false,
+        readOnlyHint: true,
+      },
       description:
-        "Use this when a PawLens widget should be rendered in ChatGPT.",
+        "Use this when the user asks to open PawLens or begin observing their dog. Renders the interactive PawLens widget for registering a dog profile, recording owner-confirmed observations, and viewing observation guidance. This tool only opens the interface and does not save or change data.",
       inputSchema: {},
+      outputSchema: WidgetGreetingSchema,
       title: "PawLensを表示",
     },
     async () => ({

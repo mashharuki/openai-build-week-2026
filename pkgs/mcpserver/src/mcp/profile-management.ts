@@ -17,10 +17,11 @@ export function registerManageDogProfile(
       annotations: {
         destructiveHint: true,
         idempotentHint: false,
+        openWorldHint: false,
         readOnlyHint: false,
       },
       description:
-        "Create, update, or delete the current conversation's dog profile.",
+        "Use this when the owner explicitly asks to create, update, or delete a dog profile in the current PawLens conversation. Creates or updates a name and optional temperament note, or deletes a profile only when action is delete and confirmed is true. Returns the created or updated profile, or the deleted profile ID. Do not use this merely to inspect a dog or analyze a reaction.",
       inputSchema: ManageDogProfileInputSchema,
       outputSchema: ProfileManagementResultSchema,
       title: "犬のプロフィールを管理",

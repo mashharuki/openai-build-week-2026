@@ -24,10 +24,11 @@ export function registerSaveObservation(
       annotations: {
         destructiveHint: false,
         idempotentHint: false,
+        openWorldHint: false,
         readOnlyHint: false,
       },
       description:
-        "Save only an owner-confirmed observation and one chosen action from the PawLens widget.",
+        "Use this only from the PawLens widget after the owner has reviewed and explicitly confirmed observed cues and a chosen next action. Saves one observation for the selected dog within the current conversation and returns the saved log. This is a write operation; never save a model-generated hypothesis as an owner-confirmed observation.",
       inputSchema: SaveObservationInputSchema,
       outputSchema: ObservationLogSchema,
       title: "確認済み観察を保存",

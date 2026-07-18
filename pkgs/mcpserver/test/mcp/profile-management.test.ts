@@ -49,6 +49,7 @@ describe("registerManageDogProfile", () => {
         annotations: {
           destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
       }),

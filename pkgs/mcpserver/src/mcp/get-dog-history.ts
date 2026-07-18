@@ -19,10 +19,11 @@ export function registerGetDogHistory(
       annotations: {
         destructiveHint: false,
         idempotentHint: true,
+        openWorldHint: false,
         readOnlyHint: true,
       },
       description:
-        "Compare owner-confirmed observations for one dog within the current conversation only.",
+        "Use this when the owner asks whether a dog's latest confirmed observation differs from earlier confirmed observations in this same PawLens conversation. Accepts a dog ID and recent saved logs, then returns a concise comparison of the current and previous observation. Returns unavailable when a stable conversation history cannot be verified; it never infers history from unsaved chat text.",
       inputSchema: GetDogHistoryInputSchema,
       outputSchema: HistoryComparisonSchema,
       title: "同一会話の観察履歴を比較",

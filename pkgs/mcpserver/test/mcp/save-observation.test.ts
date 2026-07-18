@@ -48,6 +48,7 @@ describe("registerSaveObservation", () => {
         annotations: {
           destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
       }),

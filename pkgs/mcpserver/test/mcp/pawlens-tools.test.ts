@@ -94,6 +94,7 @@ describe("registerPawLensTools", () => {
         annotations: {
           destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
       },
@@ -101,6 +102,7 @@ describe("registerPawLensTools", () => {
         annotations: {
           destructiveHint: false,
           idempotentHint: true,
+          openWorldHint: false,
           readOnlyHint: true,
         },
       },
@@ -108,6 +110,7 @@ describe("registerPawLensTools", () => {
         annotations: {
           destructiveHint: true,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
       },
@@ -116,6 +119,7 @@ describe("registerPawLensTools", () => {
         annotations: {
           destructiveHint: false,
           idempotentHint: false,
+          openWorldHint: false,
           readOnlyHint: false,
         },
       },

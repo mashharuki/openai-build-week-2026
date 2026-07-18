@@ -111,6 +111,10 @@ export const AssessmentResultSchema = z.object({
   suggestedAction: z.string().trim().min(1).max(500),
 });
 
+export const WidgetGreetingSchema = z.object({
+  greeting: z.string().trim().min(1).max(200),
+});
+
 export const SaveObservationInputSchema = z
   .object({
     chosenAction: z.string().trim().min(1).max(500),

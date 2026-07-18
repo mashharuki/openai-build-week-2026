@@ -25,10 +25,11 @@ export function registerAnalyzeDogSignal(
       annotations: {
         destructiveHint: false,
         idempotentHint: true,
+        openWorldHint: false,
         readOnlyHint: true,
       },
       description:
-        "Analyze a dog's bark as an observation prompt without making a diagnosis.",
+        "Use this when a dog owner describes a bark or other reaction and wants calm, non-diagnostic observation guidance. Accepts the dog's profile ID, situation, bark description, and optional image or audio evidence. Returns possible observational hypotheses, confidence, cues to watch, one safe next action, limitations, and an escalation signal when appropriate; it never provides a veterinary diagnosis.",
       inputSchema: OpenAiSignalInputSchema,
       outputSchema: AssessmentResultSchema,
       title: "犬の反応を見立てる",
