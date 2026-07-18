@@ -103,6 +103,12 @@ pnpm --filter @pawlens/mcpserver exec wrangler tail pawlens-mcpserver --status e
 
 認証が求められた場合は、先に `pnpm --filter @pawlens/mcpserver exec wrangler login` を実行してください。ログには秘密値や添付のURLを出力しないでください。
 
+Responses API が失敗した場合は、`pawlens.openai.responses_failure` とともに HTTP ステータス、`error.code`、`error.type` だけを出力します。プロンプト、添付URL、APIキー、OpenAIのエラーメッセージ本文はログに出力しません。
+
+## ウィジェットの CSP
+
+`ui://pawlens/hello-widget-v3.html` の返却リソースには `_meta.ui.csp` を設定しています。`connectDomains` は空の許可リストです。React の JavaScript とCSSはWorkerの `/assets/` から読むため、`resourceDomains` にはWorker自身の正確なHTTPSオリジンだけを登録しています。`pkgs/widget/public/_headers` は `/assets/*` にCORSヘッダーを付け、ChatGPTの別オリジンのサンドボックスからモジュールを安全に読めるようにします。外部通信やCDNを追加する場合だけ、その正確なHTTPSオリジンを対応するリストへ追加してください。`frameDomains` は不要なため設定しません。
+
 ## MCP Inspector で検証する
 
 Inspector は ChatGPT に登録する前の MCP プロトコル・ツール・リソース確認に使います。ローカル Worker を起動したまま、別ターミナルで Inspector を起動します。
@@ -123,7 +129,7 @@ npx @modelcontextprotocol/inspector
 
 1. **Tools** で `show_pawlens_hello`、`analyze_dog_signal`、`save_observation`、`get_dog_history`、`manage_dog_profile` が列挙される。
 2. `show_pawlens_hello` を空の引数 `{}` で呼び出し、構造化結果と PawLens ウィジェットが表示される。
-3. **Resources** で `ui://pawlens/hello-widget-v1.html` を確認する。
+3. **Resources** で `ui://pawlens/hello-widget-v3.html` を確認する。
 4. `analyze_dog_signal` のスキーマに `image` と `audio` のファイル入力があることを確認する。Apps SDK ではファイル参照に `download_url` と `file_id` が必要で、短命の URL を保存してはいけません。
 5. `save_observation` と `get_dog_history` を同じ Inspector 接続内で呼び、確認済み観察だけが比較対象になることを確認する。会話識別子が検証できない環境では比較が `unavailable` になるのが期待動作です。
 
@@ -148,7 +154,7 @@ ChatGPT は公開 HTTPS の MCP エンドポイントを必要とします。Clo
 ## 切り分け
 
 - **`/health` は通るが Inspector が接続できない**: URL が `/mcp` で終わっているか、Inspector の Transport が Streamable HTTP かを確認します。
-- **ウィジェットが出ない**: `pnpm run build` を先に実行し、`show_pawlens_hello` の呼び出しと `ui://pawlens/hello-widget-v1.html` のリソースを Inspector で確認します。
+- **ウィジェットが出ない**: `pnpm run build` を先に実行し、`show_pawlens_hello` の呼び出しと `ui://pawlens/hello-widget-v3.html` のリソースを Inspector で確認します。
 - **ChatGPT が接続できない**: localhost ではなく Cloudflare の HTTPS URL を登録し、Worker の `/health` が公開ネットワークから 200 を返すことを確認します。
 - **音声が無効**: これは安全側の既定動作です。ファイル API と音声処理能力の両方が確認できるまで、記述・状況・任意の画像で続行してください。
 

@@ -115,4 +115,36 @@ describe("OpenAI Responses gateway", () => {
       "did not contain output text",
     );
   });
+
+  it("logs only a safe classification when OpenAI rejects a request", async () => {
+    const error = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const gateway = createOpenAiResponsesGateway({
+      apiKey: "test-key",
+      fetch: async () =>
+        new Response(
+          JSON.stringify({
+            error: {
+              code: "insufficient_quota",
+              message: "Billing details should never reach Worker logs.",
+              type: "insufficient_quota",
+            },
+          }),
+          { status: 429 },
+        ),
+    });
+
+    await expect(gateway.generateStructured(input)).rejects.toThrow(
+      "failed with 429",
+    );
+
+    expect(error).toHaveBeenCalledWith("pawlens.openai.responses_failure", {
+      code: "insufficient_quota",
+      event: "openai_responses_failure",
+      status: 429,
+      type: "insufficient_quota",
+    });
+    expect(JSON.stringify(error.mock.calls)).not.toContain("Billing details");
+  });
 });

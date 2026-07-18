@@ -11,7 +11,12 @@ describe("registerHelloWidget", () => {
     const registerResource = vi.fn();
     const registerTool = vi.fn();
     const assets = {
-      fetch: vi.fn(async () => new Response("<html>Hello PawLens</html>")),
+      fetch: vi.fn(
+        async () =>
+          new Response(
+            '<html><link href="/assets/widget.css"><script src="/assets/widget.js"></script></html>',
+          ),
+      ),
     } as unknown as Fetcher;
 
     registerHelloWidget(
@@ -22,25 +27,42 @@ describe("registerHelloWidget", () => {
     expect(registerResource).toHaveBeenCalledWith(
       "pawlens-hello-widget",
       HELLO_WIDGET_RESOURCE_URI,
-      {
-        _meta: {
-          ui: {
-            csp: { connectDomains: [], resourceDomains: [] },
-            prefersBorder: true,
-          },
-        },
-      },
+      {},
       expect.any(Function),
     );
 
     const loadResource = registerResource.mock.calls[0]?.[3] as () => Promise<{
-      contents: Array<{ mimeType: string; text: string; uri: string }>;
+      contents: Array<{
+        _meta: {
+          ui: {
+            csp: { connectDomains: string[]; resourceDomains: string[] };
+            domain: string;
+            prefersBorder: boolean;
+          };
+        };
+        mimeType: string;
+        text: string;
+        uri: string;
+      }>;
     }>;
     await expect(loadResource()).resolves.toEqual({
       contents: [
         {
           mimeType: "text/html;profile=mcp-app",
-          text: "<html>Hello PawLens</html>",
+          _meta: {
+            ui: {
+              csp: {
+                connectDomains: [],
+                resourceDomains: [
+                  "https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev",
+                ],
+              },
+              domain:
+                "https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev",
+              prefersBorder: true,
+            },
+          },
+          text: '<html><link href="https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/assets/widget.css"><script src="https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/assets/widget.js"></script></html>',
           uri: HELLO_WIDGET_RESOURCE_URI,
         },
       ],

@@ -79,6 +79,8 @@ export function createOpenAiResponsesGateway(
       });
 
       if (!response.ok) {
+        const failure = await readFailureClassification(response);
+        console.error("pawlens.openai.responses_failure", failure);
         throw new Error(`OpenAI Responses API failed with ${response.status}.`);
       }
 
@@ -89,6 +91,30 @@ export function createOpenAiResponsesGateway(
 
       return JSON.parse(outputText) as unknown;
     },
+  };
+}
+
+async function readFailureClassification(response: Response) {
+  let code = "unknown";
+  let type = "unknown";
+
+  try {
+    const body = (await response.json()) as {
+      error?: { code?: unknown; type?: unknown };
+    };
+    if (typeof body.error?.code === "string") code = body.error.code;
+    if (typeof body.error?.type === "string") type = body.error.type;
+  } catch {
+    // Some upstream failures have no JSON body. Status remains actionable.
+  }
+
+  // Do not log prompts, response text, attachment URLs, request headers, or
+  // OpenAI's human-readable message: those may contain user data.
+  return {
+    code,
+    event: "openai_responses_failure",
+    status: response.status,
+    type,
   };
 }
 
