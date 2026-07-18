@@ -1,5 +1,7 @@
 # PawLens MCP server
 
+![](./docs/img/pawlens-background.png)
+
 PawLens は、犬の反応を飼い主の記述・状況・任意の画像から整理する ChatGPT App 用の MCP サーバーです。Cloudflare Workers が Streamable HTTP の `/mcp` を公開し、React ウィジェットを MCP Apps リソースとして配信します。
 
 ## 事前条件
