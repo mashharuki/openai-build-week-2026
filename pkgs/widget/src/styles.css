@@ -8,11 +8,16 @@
   --color-warm: #fff7ed;
   --shadow-card: 0 1.1rem 3rem rgb(75 47 15 / 12%);
   color: var(--color-ink);
-  background: radial-gradient(
+  background-color: #fff9f0;
+  background-image: radial-gradient(
       circle at 92% 4%,
-      rgb(232 183 102 / 22%),
+      rgb(255 249 240 / 64%),
       transparent 22rem
-    ), linear-gradient(135deg, #fffaf1 0%, #f3eadc 100%);
+    ), linear-gradient(rgb(255 250 243 / 16%), rgb(255 250 243 / 16%)),
+    url("/pawlens-background.png");
+  background-position: 92% 4%, center, center;
+  background-repeat: no-repeat;
+  background-size: auto, cover, cover;
   font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
   line-height: 1.65;
 }
@@ -23,6 +28,7 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
 }
 
 main {
@@ -391,7 +397,8 @@ section[data-state="error"] {
     --color-surface: #1f2937;
     --color-warm: #172033;
     --shadow-card: 0 1.1rem 3rem rgb(0 0 0 / 28%);
-    background: radial-gradient(
+    background-color: #101827;
+    background-image: radial-gradient(
         circle at 92% 4%,
         rgb(249 115 22 / 16%),
         transparent 22rem
