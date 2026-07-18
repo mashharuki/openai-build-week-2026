@@ -190,83 +190,125 @@ export function GuidedAssessmentForm({
 
   if (!profile || editingProfile) {
     return (
-      <section aria-labelledby="profile-start-title">
-        <p>{profile ? copy.updateProfileIntro : copy.createProfileIntro}</p>
-        <h2 id="profile-start-title">{copy.profileTitle}</h2>
-        <label>
-          {copy.dogName}
-          <input
-            onChange={(event) => setProfileName(event.target.value)}
-            type="text"
-            value={profileName}
-          />
-        </label>
-        <label>
-          {copy.temperamentNote}
-          <textarea
-            onChange={(event) => setTemperamentNote(event.target.value)}
-            value={temperamentNote}
-          />
-        </label>
-        <button
-          disabled={!profileName.trim()}
-          onClick={() => void registerProfile()}
-          type="button"
+      <section aria-labelledby="profile-start-title" className="intake-card">
+        <p className="section-eyebrow">PAWLENS / PROFILE</p>
+        <ol
+          aria-label={locale === "ja" ? "見立ての手順" : "Assessment steps"}
+          className="progress-steps"
         >
-          {profile ? copy.updateProfile : copy.createProfile}
-        </button>
-        {status ? <output aria-live="polite">{status}</output> : null}
+          <li className="is-active">
+            <span aria-hidden="true">1</span>
+            {locale === "ja" ? "愛犬を知る" : "Know your dog"}
+          </li>
+          <li>
+            <span aria-hidden="true">2</span>
+            {locale === "ja" ? "反応を観察する" : "Observe the response"}
+          </li>
+        </ol>
+        <p className="section-intro">
+          {profile ? copy.updateProfileIntro : copy.createProfileIntro}
+        </p>
+        <h2 id="profile-start-title">{copy.profileTitle}</h2>
+        <div className="form-grid">
+          <label className="form-field">
+            <span>{copy.dogName}</span>
+            <input
+              autoComplete="off"
+              name="dog-name"
+              onChange={(event) => setProfileName(event.target.value)}
+              placeholder={locale === "ja" ? "例：ノア" : "e.g. Noah"}
+              required
+              type="text"
+              value={profileName}
+            />
+          </label>
+          <label className="form-field">
+            <span>{copy.temperamentNote}</span>
+            <textarea
+              autoComplete="off"
+              name="temperament-note"
+              onChange={(event) => setTemperamentNote(event.target.value)}
+              placeholder={
+                locale === "ja"
+                  ? "人見知り、音に敏感 など"
+                  : "Shy, sensitive to sounds…"
+              }
+              value={temperamentNote}
+            />
+          </label>
+        </div>
+        <div className="form-actions">
+          <button
+            disabled={!profileName.trim()}
+            onClick={() => void registerProfile()}
+            type="button"
+          >
+            {profile ? copy.updateProfile : copy.createProfile}
+          </button>
+          {status ? (
+            <output aria-live="polite" className="form-feedback">
+              {status}
+            </output>
+          ) : null}
+        </div>
       </section>
     );
   }
 
   return (
-    <section aria-labelledby="guided-assessment-title">
-      <p>{copy.startAssessment(profile.name)}</p>
-      <button onClick={() => setEditingProfile(true)} type="button">
+    <section aria-labelledby="guided-assessment-title" className="intake-card">
+      <p className="section-eyebrow">PAWLENS / OBSERVATION</p>
+      <p className="section-intro">{copy.startAssessment(profile.name)}</p>
+      <button
+        className="button-secondary"
+        onClick={() => setEditingProfile(true)}
+        type="button"
+      >
         {copy.editProfile}
       </button>
       <h2 id="guided-assessment-title">{copy.observationTitle}</h2>
-      <label>
-        {copy.barkDescription}
-        <textarea
-          onChange={(event) => setBarkDescription(event.target.value)}
-          value={barkDescription}
-        />
-      </label>
-      <label>
-        {copy.precedingEvent}
-        <input
-          onChange={(event) => setPrecedingEvent(event.target.value)}
-          type="text"
-          value={precedingEvent}
-        />
-      </label>
-      <label>
-        {copy.distance}
-        <input
-          onChange={(event) => setDistanceToPerson(event.target.value)}
-          type="text"
-          value={distanceToPerson}
-        />
-      </label>
-      <label>
-        {copy.context}
-        <select
-          onChange={(event) =>
-            setContext(
-              event.target.value as (typeof contextOptions)[number]["value"],
-            )
-          }
-          value={context}
-        >
-          {contextOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {formCopy[locale].contextOptions[option.value]}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="form-grid">
+        <label className="form-field form-field-wide">
+          {copy.barkDescription}
+          <textarea
+            onChange={(event) => setBarkDescription(event.target.value)}
+            value={barkDescription}
+          />
+        </label>
+        <label className="form-field">
+          {copy.precedingEvent}
+          <input
+            onChange={(event) => setPrecedingEvent(event.target.value)}
+            type="text"
+            value={precedingEvent}
+          />
+        </label>
+        <label className="form-field">
+          {copy.distance}
+          <input
+            onChange={(event) => setDistanceToPerson(event.target.value)}
+            type="text"
+            value={distanceToPerson}
+          />
+        </label>
+        <label className="form-field">
+          {copy.context}
+          <select
+            onChange={(event) =>
+              setContext(
+                event.target.value as (typeof contextOptions)[number]["value"],
+              )
+            }
+            value={context}
+          >
+            {contextOptions.map((option) => (
+              <option key={option.value} value={option.value}>
+                {formCopy[locale].contextOptions[option.value]}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <fieldset>
         <legend>{copy.optionalEvidence}</legend>
         <label>

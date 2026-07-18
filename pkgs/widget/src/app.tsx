@@ -117,7 +117,25 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
       }
       lang={locale}
     >
-      <h1>PawLens</h1>
+      <header className="brand-header">
+        <div aria-hidden="true" className="brand-mark">
+          <svg aria-hidden="true" viewBox="0 0 48 48">
+            <circle cx="11" cy="18" r="5" />
+            <circle cx="24" cy="11" r="5" />
+            <circle cx="37" cy="18" r="5" />
+            <path d="M24 23c-7.4 0-12 5.1-12 10.6 0 4.2 3.8 6.4 7.1 4.1l2.2-1.5a4.9 4.9 0 0 1 5.4 0l2.2 1.5c3.3 2.3 7.1.1 7.1-4.1C36 28.1 31.4 23 24 23Z" />
+          </svg>
+        </div>
+        <div>
+          <p className="brand-eyebrow">OBSERVE · UNDERSTAND · CARE</p>
+          <h1 translate="no">PawLens</h1>
+          <p>
+            {locale === "ja"
+              ? "愛犬の「いつもと違う」を、落ち着いて観察するために。"
+              : "A calm way to notice what is different for your dog."}
+          </p>
+        </div>
+      </header>
       {state.kind === "success" ? (
         <AssessmentCard
           actions={

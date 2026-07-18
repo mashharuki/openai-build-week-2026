@@ -1,7 +1,19 @@
 :root {
-  color: #16233a;
-  background: #f6f0e6;
-  font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  --color-accent: #2563eb;
+  --color-border: #fed7aa;
+  --color-ink: #172841;
+  --color-muted: #64748b;
+  --color-primary: #f97316;
+  --color-surface: #fffdf8;
+  --color-warm: #fff7ed;
+  --shadow-card: 0 1.1rem 3rem rgb(75 47 15 / 12%);
+  color: var(--color-ink);
+  background: radial-gradient(
+      circle at 92% 4%,
+      rgb(232 183 102 / 22%),
+      transparent 22rem
+    ), linear-gradient(135deg, #fffaf1 0%, #f3eadc 100%);
+  font-family: "Hiragino Sans", "Yu Gothic", "Noto Sans JP", sans-serif;
   line-height: 1.65;
 }
 
@@ -16,16 +28,146 @@ body {
 main {
   max-width: 46rem;
   margin: 0 auto;
-  padding: clamp(1rem, 4vw, 3rem);
+  padding: clamp(1.25rem, 5vw, 3.25rem);
+}
+
+.brand-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  margin: 0 0 1.75rem;
+}
+
+.brand-header h1 {
+  margin: 0;
+  color: #16243d;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  font-size: clamp(2.1rem, 8vw, 3.25rem);
+  letter-spacing: -0.065em;
+  line-height: 1;
+}
+
+.brand-mark {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 1.05rem;
+  background: #fff0df;
+  box-shadow: inset 0 0 0 1px rgb(217 100 62 / 16%);
+  color: #d9643e;
+}
+
+.brand-mark svg {
+  width: 2rem;
+  fill: currentColor;
+}
+
+.brand-eyebrow {
+  margin: 0 0 0.18rem;
+  color: #b65d3c;
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.brand-header h1 + p {
+  margin: 0.3rem 0 0;
+  color: #687184;
+  font-size: 0.94rem;
 }
 
 section[aria-label] {
   margin-block: 1rem;
-  padding: 1rem;
-  border: 1px solid #bdab8b;
-  border-radius: 0.75rem;
-  background: #fffdf8;
-  box-shadow: 0.25rem 0.3rem 0 #e4d7c1;
+  border: 1px solid rgb(71 58 43 / 14%);
+  border-radius: 1.15rem;
+  background: rgb(255 253 248 / 82%);
+  box-shadow: 0 0.75rem 2.25rem rgb(74 51 23 / 8%);
+}
+
+.intake-card {
+  position: relative;
+  overflow: hidden;
+  padding: clamp(1.25rem, 4vw, 2rem);
+  border: 0;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.intake-card::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.38rem;
+  background: linear-gradient(#df7a51, #eba537);
+  content: "";
+}
+
+.section-eyebrow {
+  margin: 0 0 0.5rem;
+  color: #b65d3c;
+  font-size: 0.69rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+
+.progress-steps {
+  display: flex;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0 0 1.2rem;
+  padding: 0;
+}
+
+.progress-steps li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #9a8977;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.progress-steps span {
+  display: grid;
+  width: 1.5rem;
+  height: 1.5rem;
+  place-items: center;
+  border: 1px solid #decdbb;
+  border-radius: 999px;
+  background: #fffefa;
+  font-size: 0.7rem;
+}
+
+.progress-steps .is-active {
+  color: var(--color-ink);
+}
+
+.progress-steps .is-active span {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: #172841;
+}
+
+.section-intro {
+  margin: 0;
+  color: #697287;
+  font-size: 0.95rem;
+}
+
+h2 {
+  margin: 0.45rem 0 1.35rem;
+  color: #172841;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  font-size: clamp(1.55rem, 5vw, 2rem);
+  letter-spacing: -0.04em;
+  line-height: 1.25;
+}
+
+h3 {
+  margin: 0;
+  color: #172841;
+  font-family: "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
 }
 
 button,
@@ -33,24 +175,142 @@ input,
 select,
 textarea,
 a {
-  min-height: 2.75rem;
   font: inherit;
 }
 
-button,
 input,
 select,
 textarea {
-  border: 1px solid #6b5c48;
-  border-radius: 0.35rem;
+  width: 100%;
+  min-height: 3rem;
+  border: 1px solid #d7cbbc;
+  border-radius: 0.65rem;
+  background: #fffefa;
+  color: #172841;
+  padding: 0.72rem 0.85rem;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+textarea {
+  min-height: 7.2rem;
+  resize: vertical;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9c9a96;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.form-field {
+  display: grid;
+  gap: 0.42rem;
+  color: #4e5a70;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.form-field:has(input:required) > span::after {
+  color: #c45232;
+  content: " *";
+}
+
+.form-field-wide {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.25rem;
 }
 
 button {
-  padding-inline: 0.85rem;
+  min-height: 3rem;
+  border: 0;
+  border-radius: 999px;
+  background: var(--color-primary);
+  box-shadow: 0 0.32rem 0 #9c422c;
+  color: #fffdf9;
   cursor: pointer;
-  background: #e6a23c;
-  color: #18253a;
-  font-weight: 700;
+  font-weight: 800;
+  padding: 0.7rem 1.25rem;
+  transition: transform 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+button:hover:not(:disabled) {
+  background: #e65c12;
+  box-shadow: 0 0.2rem 0 #9c422c;
+  transform: translateY(0.12rem);
+}
+
+button:disabled {
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.button-secondary {
+  min-height: auto;
+  margin: 0 0 1rem;
+  border: 1px solid #d7cbbc;
+  background: transparent;
+  box-shadow: none;
+  color: #4d5b70;
+  font-size: 0.84rem;
+  padding: 0.45rem 0.85rem;
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: #f4ecdf;
+  box-shadow: none;
+  transform: none;
+}
+
+.form-feedback {
+  flex: 1;
+  border-left: 3px solid #c45c43;
+  color: #8d4436;
+  font-size: 0.88rem;
+  padding-left: 0.75rem;
+}
+
+fieldset {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.25rem 0;
+  border: 1px dashed #cdbca8;
+  border-radius: 0.85rem;
+  padding: 0.9rem;
+}
+
+legend {
+  color: #7f705f;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding-inline: 0.3rem;
+}
+
+fieldset label {
+  display: grid;
+  gap: 0.4rem;
+  color: #5a6375;
+  font-size: 0.82rem;
+}
+
+fieldset p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #7e7569;
+  font-size: 0.8rem;
 }
 
 button:focus-visible,
@@ -58,18 +318,27 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 a:focus-visible {
-  outline: 3px solid #075f83;
+  outline: 3px solid #3d92a0;
   outline-offset: 3px;
 }
 
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #d9643e;
+  box-shadow: 0 0 0 0.22rem rgb(217 100 62 / 15%);
+  outline: none;
+}
+
 section[role="alert"] {
-  border-width: 3px;
-  font-weight: 650;
+  border-width: 2px;
+  padding: 1.1rem 1.25rem;
 }
 
 section[data-state="urgent"] {
   background: #fff3db;
 }
+
 section[data-state="error"] {
   background: #fff0ef;
 }
@@ -80,18 +349,102 @@ section[data-state="error"] {
 }
 
 @media (prefers-reduced-motion: no-preference) {
+  .intake-card,
   section[data-state="assessment"] {
-    animation: card-arrive 220ms ease-out both;
+    animation: card-arrive 260ms ease-out both;
   }
+
   @keyframes card-arrive {
     from {
       opacity: 0;
-      transform: translateY(0.4rem);
+      transform: translateY(0.55rem);
     }
     to {
       opacity: 1;
       transform: translateY(0);
     }
+  }
+}
+
+@media (max-width: 34rem) {
+  .form-grid,
+  fieldset {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .form-feedback {
+    width: 100%;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-border: #533b27;
+    --color-ink: #f8eee2;
+    --color-muted: #c9b9a8;
+    --color-primary: #fb923c;
+    --color-surface: #1f2937;
+    --color-warm: #172033;
+    --shadow-card: 0 1.1rem 3rem rgb(0 0 0 / 28%);
+    background: radial-gradient(
+        circle at 92% 4%,
+        rgb(249 115 22 / 16%),
+        transparent 22rem
+      ), linear-gradient(135deg, #101827 0%, #18202d 100%);
+    color-scheme: dark;
+  }
+
+  .brand-header h1,
+  h2,
+  h3 {
+    color: #fff7ed;
+  }
+
+  .brand-header h1 + p,
+  .section-intro,
+  .form-field,
+  fieldset label {
+    color: #d0c2b5;
+  }
+
+  .brand-mark {
+    background: #33271e;
+  }
+
+  section[aria-label],
+  .intake-card {
+    background: #1f2937;
+  }
+
+  input,
+  select,
+  textarea,
+  .progress-steps span {
+    border-color: #4b5563;
+    background: #111827;
+    color: #fff7ed;
+  }
+
+  fieldset {
+    border-color: #5f5141;
+  }
+
+  .button-secondary {
+    border-color: #596375;
+    color: #e2d8cd;
+  }
+
+  .button-secondary:hover:not(:disabled) {
+    background: #344154;
+  }
+
+  .form-feedback {
+    color: #ffd0c0;
   }
 }
 
