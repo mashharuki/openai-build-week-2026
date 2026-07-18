@@ -7,6 +7,10 @@ export const ERROR_MESSAGES = {
     en: "We could not prepare an assessment. Please try again after reviewing the input.",
     ja: "見立てを準備できませんでした。入力を見直してからもう一度お試しください。",
   },
+  profile_save_failed: {
+    en: "We could not save the dog's profile. Please check your connection and try again.",
+    ja: "プロフィールを保存できませんでした。接続を確認してからもう一度お試しください。",
+  },
   media_privacy_notice: {
     en: "Photos and audio may contain personal information. They are used only as temporary assessment evidence.",
     ja: "写真や音声には個人情報が含まれる可能性があります。見立ての一時的な根拠としてのみ扱います。",

@@ -82,7 +82,7 @@ export function GuidedAssessmentForm({
         !parsed.success ||
         (parsed.data.status !== "created" && parsed.data.status !== "updated")
       ) {
-        setStatus(getErrorMessage("generation_failed", locale));
+        setStatus(getErrorMessage("profile_save_failed", locale));
         return;
       }
       setProfile(parsed.data.profile);
@@ -91,7 +91,7 @@ export function GuidedAssessmentForm({
       onProfileChange?.(parsed.data.profile);
       setStatus(null);
     } catch {
-      setStatus(getErrorMessage("generation_failed", locale));
+      setStatus(getErrorMessage("profile_save_failed", locale));
     }
   };
 

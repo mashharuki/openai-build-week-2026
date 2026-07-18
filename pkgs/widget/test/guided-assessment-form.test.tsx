@@ -93,6 +93,30 @@ describe("GuidedAssessmentForm", () => {
     ).not.toBeNull();
   });
 
+  it("プロフィール作成の失敗を見立て失敗として表示しない", async () => {
+    render(
+      <GuidedAssessmentForm
+        callTool={vi.fn(async () => {
+          throw new Error("unavailable");
+        })}
+        locale="ja"
+        onAssessment={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText("愛犬の名前"), {
+      target: { value: "ココ" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "プロフィールを登録" }));
+
+    expect(
+      await screen.findByText(
+        "プロフィールを保存できませんでした。接続を確認してからもう一度お試しください。",
+      ),
+    ).not.toBeNull();
+    expect(screen.queryByText("見立てを準備できませんでした。入力を見直してからもう一度お試しください。")).toBeNull();
+  });
+
   it("個体名がなければ見立てを開始できず、登録後は記述と状況だけで送信できる", async () => {
     const callTool = vi.fn(async (name: string) => {
       if (name === "manage_dog_profile") {

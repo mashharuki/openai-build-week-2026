@@ -32,47 +32,75 @@ export function registerManageDogProfile(
       title: "犬のプロフィールを管理",
     },
     async (input) => {
-      const operation = ManageDogProfileInputSchema.parse(input);
+      try {
+        const operation = ManageDogProfileInputSchema.parse(input);
 
-      if (operation.action === "create") {
-        const profile = await profiles.create(scope, operation);
+        if (operation.action === "create") {
+          const profile = await profiles.create(scope, operation);
 
-        return {
-          content: [],
-          structuredContent: { profile, status: "created" as const },
-        };
-      }
+          return {
+            content: [],
+            structuredContent: { profile, status: "created" as const },
+          };
+        }
 
-      if (operation.action === "update") {
-        const profile = await profiles.update(
-          scope,
-          operation.dogId,
-          operation,
-        );
+        if (operation.action === "update") {
+          const profile = await profiles.update(
+            scope,
+            operation.dogId,
+            operation,
+          );
 
-        return profile
+          return profile
           ? {
               content: [],
               structuredContent: { profile, status: "updated" as const },
             }
+            : profileNotFound();
+        }
+
+        // The schema requires `confirmed: true`; descriptor annotations inform
+        // clients but do not enforce intent within a server handler.
+        const deleted = await profiles.delete(scope, operation);
+
+        return deleted
+          ? {
+              content: [],
+              structuredContent: {
+                dogId: operation.dogId,
+                status: "deleted" as const,
+              },
+            }
           : profileNotFound();
+      } catch (error) {
+        // Keep diagnostic logs useful without recording a dog's name, notes,
+        // ID, raw request, or provider error body.
+        console.error("pawlens.profile.operation_failure", {
+          action: requestedAction(input),
+          category: isValidationFailure(error)
+            ? "validation"
+            : "storage_or_runtime",
+          event: "profile_operation_failure",
+        });
+        throw error;
       }
-
-      // The schema requires `confirmed: true`; descriptor annotations inform
-      // clients but do not enforce intent within a server handler.
-      const deleted = await profiles.delete(scope, operation);
-
-      return deleted
-        ? {
-            content: [],
-            structuredContent: {
-              dogId: operation.dogId,
-              status: "deleted" as const,
-            },
-          }
-        : profileNotFound();
     },
   );
+}
+
+function requestedAction(input: unknown): "create" | "update" | "delete" | "unknown" {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return "unknown";
+  }
+
+  const action = (input as { action?: unknown }).action;
+  return action === "create" || action === "update" || action === "delete"
+    ? action
+    : "unknown";
+}
+
+function isValidationFailure(error: unknown): boolean {
+  return error instanceof Error && error.name === "ZodError";
 }
 
 function profileNotFound() {
