@@ -7,6 +7,7 @@ import type {
 } from "./env.js";
 import { type McpRuntime, createMcpRuntime } from "./mcp/server.js";
 import { createConversationScope } from "./repositories.js";
+import { createOpenAiResponsesGateway } from "./openai-responses-gateway.js";
 
 export type { McpRuntime } from "./mcp/server.js";
 export type { ModelGateway, WorkerRuntimeDependencies } from "./env.js";
@@ -26,13 +27,7 @@ export const defaultDependencies: AppDependencies = {
   createWorkerDependencies: (bindings) => ({
     assets: bindings.ASSETS,
     kv: bindings.PAWLENS_KV,
-    model: {
-      // A deployment must explicitly replace this boundary. Failing closed is
-      // safer than accidentally treating an unavailable model as a diagnosis.
-      generateStructured: async () => {
-        throw new Error("The model adapter has not been configured.");
-      },
-    },
+    model: createOpenAiResponsesGateway({ apiKey: bindings.OPENAI_API_KEY }),
   }),
   now: () => new Date(),
   serviceName: "pawlens-mcpserver",
@@ -46,7 +41,9 @@ function createSessionApp(runtime: McpRuntime) {
     if (!runtime.isConnected()) await runtime.connect();
     if (context.req.method === "DELETE") {
       try {
-        return (await runtime.handleRequest(context)) ?? context.body(null, 204);
+        return (
+          (await runtime.handleRequest(context)) ?? context.body(null, 204)
+        );
       } finally {
         await runtime.close();
       }
@@ -68,7 +65,8 @@ export class PawLensMcpSession {
 
   async fetch(request: Request): Promise<Response> {
     const scopeId = request.headers.get("x-pawlens-session-id");
-    if (!scopeId) return new Response("Missing MCP session route.", { status: 400 });
+    if (!scopeId)
+      return new Response("Missing MCP session route.", { status: 400 });
 
     if (!this.runtime) {
       if (request.headers.has("mcp-session-id")) {
@@ -112,9 +110,9 @@ export function createApp(overrides: Partial<AppDependencies> = {}) {
         context.req.header("mcp-session-id") ?? crypto.randomUUID();
       const headers = new Headers(context.req.raw.headers);
       headers.set("x-pawlens-session-id", sessionId);
-      return context.env.MCP_SESSIONS
-        .getByName(sessionId)
-        .fetch(new Request(context.req.raw, { headers }));
+      return context.env.MCP_SESSIONS.getByName(sessionId).fetch(
+        new Request(context.req.raw, { headers }),
+      );
     }
 
     const requestedSessionId = context.req.header("mcp-session-id");

@@ -7,6 +7,8 @@ export interface WorkerBindings {
   MCP_SESSIONS?: {
     getByName(name: string): { fetch(request: Request): Promise<Response> };
   };
+  /** Set with `wrangler secret put OPENAI_API_KEY`; never return this value. */
+  OPENAI_API_KEY?: string;
   PAWLENS_KV: KVNamespace;
 }
 

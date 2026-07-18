@@ -16,6 +16,7 @@
     "test/repositories.test.ts",
     "test/observation-service.test.ts",
     "test/model.test.ts",
+    "test/openai-responses-gateway.test.ts",
     "test/index.test.ts",
     "test/history-diff.test.ts",
     "test/guardrails.test.ts",
