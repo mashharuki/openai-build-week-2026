@@ -21,7 +21,7 @@ describe("共有スキーマ", () => {
       },
       barkDescription: "玄関のチャイム後に短く連続して吠えた",
       context: "visitor",
-      distanceToPerson: null,
+      distance_to_trigger_meters: null,
       dogId: "dog-1",
       image: {
         download_url: "https://files.example/photo.jpg",

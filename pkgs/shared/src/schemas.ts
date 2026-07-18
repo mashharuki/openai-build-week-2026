@@ -115,12 +115,15 @@ export const OpenAiSignalToolInputSchema = z
     context: SignalContextSchema.describe(
       "Situation in which the reaction occurred, such as visitor, doorbell, or unknown.",
     ),
-    distanceToPerson: z
-      .string()
-      .trim()
-      .max(500)
+    distance_to_trigger_meters: z
+      .number()
+      .finite()
+      .min(0)
+      .max(1_000)
       .nullable()
-      .describe("Approximate distance between the dog and the person or trigger; null if unknown."),
+      .describe(
+        "Straight-line distance in meters from the dog to the immediate trigger (for example, a person, another dog, a door, or a sound source). Use a number such as 2.5; use null when unknown. Do not pass a text value such as '2m'.",
+      ),
     dogId: z
       .string()
       .trim()
@@ -146,6 +149,10 @@ export const OpenAiSignalInputSchema = OpenAiSignalToolInputSchema.transform(
       audio: input.audio
         ? OpenAiFileReferenceSchema.parse(input.audio)
         : null,
+      distanceToPerson:
+        input.distance_to_trigger_meters === null
+          ? null
+          : `${input.distance_to_trigger_meters} m`,
       image: input.image
         ? OpenAiFileReferenceSchema.parse(input.image)
         : null,

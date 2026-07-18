@@ -30,7 +30,7 @@ export function registerAnalyzeDogSignal(
         readOnlyHint: true,
       },
       description:
-        "Use this when a dog owner describes a bark or other reaction and wants calm, non-diagnostic observation guidance. Accepts the dog's profile ID, situation, bark description, and optional image or audio evidence. Returns possible observational hypotheses, confidence, cues to watch, one safe next action, limitations, and an escalation signal when appropriate; it never provides a veterinary diagnosis.",
+        "Use this when a dog owner describes a bark or other reaction and wants calm, non-diagnostic observation guidance. Provide the dog's profile ID, situation, factual reaction description, and distance_to_trigger_meters as a number in meters or null when unknown; image and audio evidence are optional. Returns possible observational hypotheses, confidence, cues to watch, one safe next action, limitations, and an escalation signal when appropriate; it never provides a veterinary diagnosis.",
       // The transformed parser is ideal for the handler, but MCP's tools/list
       // requires an object-shaped schema to publish its field descriptions.
       inputSchema: OpenAiSignalToolInputSchema,
@@ -41,7 +41,9 @@ export function registerAnalyzeDogSignal(
       // Apps SDK supplies snake_case file parameters. The canonical form is
       // retained for the widget's already-stored evidence and local tests;
       // ChatGPT scans the descriptor above, so new host calls use the former.
-      const appsSdkSignal = OpenAiSignalInputSchema.safeParse(input);
+      const appsSdkSignal = OpenAiSignalInputSchema.safeParse(
+        withLegacyDistanceInMeters(input),
+      );
       const signal = appsSdkSignal.success
         ? appsSdkSignal.data
         : SignalInputSchema.parse(input);
@@ -50,4 +52,37 @@ export function registerAnalyzeDogSignal(
       return { content: [], structuredContent: assessment };
     },
   );
+}
+
+/**
+ * Keeps already-rendered widget bundles working while the public MCP contract
+ * moves from an ambiguous text field to distance_to_trigger_meters.
+ */
+function withLegacyDistanceInMeters(input: unknown): unknown {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return input;
+  }
+
+  const candidate = input as Record<string, unknown>;
+  if (
+    "distance_to_trigger_meters" in candidate ||
+    !("distanceToPerson" in candidate)
+  ) {
+    return input;
+  }
+
+  const legacyDistance = candidate.distanceToPerson;
+  const meters =
+    legacyDistance === null
+      ? null
+      : typeof legacyDistance === "number"
+        ? legacyDistance
+        : typeof legacyDistance === "string"
+          ? Number.parseFloat(legacyDistance)
+          : Number.NaN;
+
+  if (!Number.isFinite(meters) && meters !== null) return input;
+
+  const { distanceToPerson: _legacyDistance, ...appsSdkCandidate } = candidate;
+  return { ...appsSdkCandidate, distance_to_trigger_meters: meters };
 }
