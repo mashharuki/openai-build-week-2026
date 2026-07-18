@@ -22,6 +22,35 @@ export const FileReferenceSchema = z.object({
   mimeType: z.string().trim().min(1),
 });
 
+/**
+ * The documented Apps SDK representation for a file passed through
+ * `openai/fileParams`. This remains separate from FileReferenceSchema so the
+ * application service never needs to depend on host-specific field names.
+ */
+export const OpenAiFileReferenceSchema = z
+  .object({
+    download_url: z.string().url(),
+    duration_seconds: z
+      .number()
+      .positive()
+      .max(MAX_AUDIO_DURATION_SECONDS)
+      .optional(),
+    file_id: z.string().trim().min(1),
+    file_name: z.string().trim().min(1).optional(),
+    mime_type: z.string().trim().min(1).optional(),
+  })
+  .strict()
+  .transform((file) =>
+    FileReferenceSchema.parse({
+      downloadUrl: file.download_url,
+      durationSeconds: file.duration_seconds,
+      fileId: file.file_id,
+      // Apps SDK permits this field to be absent. Treat the unknown content
+      // type as unusable evidence rather than guessing that it is audio/image.
+      mimeType: file.mime_type ?? "application/octet-stream",
+    }),
+  );
+
 export const DogProfileSchema = z.object({
   createdAt: z.string().datetime(),
   id: z.string().trim().min(1),
@@ -49,6 +78,19 @@ export const SignalInputSchema = z.object({
   locale: LocaleSchema,
   precedingEvent: z.string().trim().max(500).nullable(),
 });
+
+export const OpenAiSignalInputSchema = z
+  .object({
+    audio: OpenAiFileReferenceSchema.nullable(),
+    barkDescription: z.string().trim().min(1).max(2_000),
+    context: SignalContextSchema,
+    distanceToPerson: z.string().trim().max(500).nullable(),
+    dogId: z.string().trim().min(1),
+    image: OpenAiFileReferenceSchema.nullable(),
+    locale: LocaleSchema,
+    precedingEvent: z.string().trim().max(500).nullable(),
+  })
+  .transform((input) => SignalInputSchema.parse(input));
 
 export const HypothesisSchema = z.object({
   label: z.string().trim().min(1).max(300),

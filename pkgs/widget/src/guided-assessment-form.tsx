@@ -10,12 +10,15 @@ import {
   getErrorMessage,
 } from "@pawlens/shared";
 
+import type { AppsSdkFileUploader, AppsSdkToolFile } from "./openai-runtime.js";
+
 type ToolCaller = (name: string, input: unknown) => Promise<unknown>;
 type AudioDurationReader = (file: File) => Promise<number | undefined>;
 
 export interface GuidedAssessmentFormProps {
   audioSupported?: boolean;
   callTool: ToolCaller;
+  fileUploader?: AppsSdkFileUploader;
   getAudioDuration?: AudioDurationReader;
   locale: Locale;
   onAssessment: (
@@ -35,6 +38,7 @@ const contextOptions = [
 export function GuidedAssessmentForm({
   audioSupported = false,
   callTool,
+  fileUploader,
   getAudioDuration = readAudioDuration,
   locale,
   onAssessment,
@@ -46,9 +50,13 @@ export function GuidedAssessmentForm({
   const [context, setContext] =
     useState<(typeof contextOptions)[number]["value"]>("unknown");
   const [distanceToPerson, setDistanceToPerson] = useState("");
-  const [audio, setAudio] = useState<FileReference | null>(null);
+  const [audio, setAudio] = useState<FileReference | AppsSdkToolFile | null>(
+    null,
+  );
   const [editingProfile, setEditingProfile] = useState(false);
-  const [image, setImage] = useState<FileReference | null>(null);
+  const [image, setImage] = useState<FileReference | AppsSdkToolFile | null>(
+    null,
+  );
   const [isRequesting, setIsRequesting] = useState(false);
   const [mediaNoticeVisible, setMediaNoticeVisible] = useState(false);
   const [precedingEvent, setPrecedingEvent] = useState("");
@@ -116,8 +124,21 @@ export function GuidedAssessmentForm({
     }
   };
 
-  const selectImage = (file: File | undefined) => {
+  const selectImage = async (file: File | undefined) => {
     setMediaNoticeVisible(true);
+    if (!file) {
+      setImage(null);
+      return;
+    }
+    if (fileUploader) {
+      try {
+        setImage((await fileUploader(file)) ?? null);
+      } catch {
+        setImage(null);
+        setStatus(getErrorMessage("partial_evidence", locale));
+      }
+      return;
+    }
     setImage(
       file
         ? {
@@ -143,6 +164,16 @@ export function GuidedAssessmentForm({
     ) {
       setAudio(null);
       setStatus(getErrorMessage("partial_evidence", locale));
+      return;
+    }
+
+    if (fileUploader) {
+      try {
+        setAudio((await fileUploader(file, durationSeconds)) ?? null);
+      } catch {
+        setAudio(null);
+        setStatus(getErrorMessage("partial_evidence", locale));
+      }
       return;
     }
 
@@ -238,7 +269,7 @@ export function GuidedAssessmentForm({
           {copy.addPhoto}
           <input
             accept="image/*"
-            onChange={(event) => selectImage(event.target.files?.[0])}
+            onChange={(event) => void selectImage(event.target.files?.[0])}
             onClick={() => setMediaNoticeVisible(true)}
             type="file"
           />

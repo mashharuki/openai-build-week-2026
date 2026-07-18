@@ -24,7 +24,7 @@ describe("createRuntimeAssessmentService", () => {
       generateStructured: vi.fn(async () => candidate),
     };
     const service = createRuntimeAssessmentService(
-      { audioAvailable: true, model } as never,
+      { audioAvailable: true, fileInputsAvailable: true, model } as never,
       { list: vi.fn(async () => []) },
     );
 

@@ -6,6 +6,7 @@ import { AssessmentCard } from "./assessment-card.js";
 import { GuidedAssessmentForm } from "./guided-assessment-form.js";
 import { ObservationActions } from "./observation-actions.js";
 import {
+  createAppsSdkFileUploader,
   getDogIdFromToolInputMessage,
   getStructuredContentFromBridgeMessage,
   getToolCaller,
@@ -136,8 +137,12 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
         />
       )}
       <GuidedAssessmentForm
-        audioSupported={window.openai?.capabilities?.audioEvidence === true}
+        audioSupported={
+          typeof window.openai?.uploadFile === "function" &&
+          typeof window.openai?.getFileDownloadUrl === "function"
+        }
         callTool={getToolCaller(window.openai ?? {})}
+        fileUploader={createAppsSdkFileUploader(window.openai ?? {})}
         locale={locale}
         onDogId={setDogId}
         onProfileChange={setProfile}

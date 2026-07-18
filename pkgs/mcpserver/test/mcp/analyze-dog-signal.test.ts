@@ -57,6 +57,7 @@ describe("registerAnalyzeDogSignal", () => {
       "analyze_dog_signal",
       expect.objectContaining({
         _meta: {
+          "openai/fileParams": ["image", "audio"],
           "openai/outputTemplate": HELLO_WIDGET_RESOURCE_URI,
           ui: { resourceUri: HELLO_WIDGET_RESOURCE_URI },
         },

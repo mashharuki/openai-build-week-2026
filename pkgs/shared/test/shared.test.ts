@@ -4,12 +4,48 @@ import {
   CAPABILITY_FLAGS,
   ERROR_MESSAGES,
   MAX_AUDIO_DURATION_SECONDS,
+  OpenAiSignalInputSchema,
   SignalInputSchema,
   getErrorMessage,
 } from "../src/index.js";
 import { dedupeObservationLogs, normalizeFileReference } from "../src/utils.js";
 
 describe("共有スキーマ", () => {
+  it("Apps SDKのファイル入力を正規化し、ダウンロードURLがない添付を拒否する", () => {
+    const input = {
+      audio: {
+        download_url: "https://files.example/bark.wav",
+        duration_seconds: 4,
+        file_id: "audio-1",
+        mime_type: "audio/wav",
+      },
+      barkDescription: "玄関のチャイム後に短く連続して吠えた",
+      context: "visitor",
+      distanceToPerson: null,
+      dogId: "dog-1",
+      image: {
+        download_url: "https://files.example/photo.jpg",
+        file_id: "image-1",
+        mime_type: "image/jpeg",
+      },
+      locale: "ja",
+      precedingEvent: null,
+    };
+
+    expect(OpenAiSignalInputSchema.parse(input).audio).toEqual({
+      downloadUrl: "https://files.example/bark.wav",
+      durationSeconds: 4,
+      fileId: "audio-1",
+      mimeType: "audio/wav",
+    });
+    expect(
+      OpenAiSignalInputSchema.safeParse({
+        ...input,
+        audio: { file_id: "audio-1", mime_type: "audio/wav" },
+      }).success,
+    ).toBe(false);
+  });
+
   it("記述優先の見立て入力を検証し、不正な状況と長すぎる音声を拒否する", () => {
     const baseInput = {
       dogId: "dog-1",

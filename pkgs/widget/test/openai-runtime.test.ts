@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+    createAppsSdkFileUploader,
     getDogIdFromToolInputMessage,
     getStructuredContentFromBridgeMessage,
     getToolCaller,
@@ -8,6 +9,36 @@ import {
 } from "../src/openai-runtime.js";
 
 describe("getStructuredContentFromBridgeMessage", () => {
+  it("Apps SDKのアップロード済みファイルをツール用snake_case参照へ変換する", async () => {
+    const uploadFile = vi.fn(async () => ({ fileId: "file-1" }));
+    const getFileDownloadUrl = vi.fn(async () => ({
+      downloadUrl: "https://files.example/file-1",
+    }));
+    const uploader = createAppsSdkFileUploader({
+      getFileDownloadUrl,
+      uploadFile,
+    });
+
+    await expect(
+      uploader(new File(["bark"], "coco.wav", { type: "audio/wav" }), 4),
+    ).resolves.toEqual({
+      download_url: "https://files.example/file-1",
+      duration_seconds: 4,
+      file_id: "file-1",
+      file_name: "coco.wav",
+      mime_type: "audio/wav",
+    });
+    expect(getFileDownloadUrl).toHaveBeenCalledWith({ fileId: "file-1" });
+  });
+
+  it("ファイルAPIがないホストでは添付を送らない", async () => {
+    const uploader = createAppsSdkFileUploader({});
+
+    await expect(
+      uploader(new File(["photo"], "coco.jpg", { type: "image/jpeg" })),
+    ).resolves.toBeUndefined();
+  });
+
   it("Apps SDKのcallToolとtool-inputから、明示操作に必要な型付き経路を提供する", async () => {
     const callTool = vi.fn(async () => ({ ok: true }));
     await expect(getToolCaller({ callTool })("save_observation", { dogId: "dog-1" })).resolves.toEqual({ ok: true });

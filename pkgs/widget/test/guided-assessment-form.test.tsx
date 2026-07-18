@@ -197,7 +197,7 @@ describe("GuidedAssessmentForm", () => {
     );
   });
 
-  it("選択した写真はURLを保持せず、ファイル参照だけを見立てへ渡す", async () => {
+  it("選択した写真をApps SDKのファイル参照として見立てへ渡す", async () => {
     const callTool = vi.fn(async (name: string) => {
       if (name === "manage_dog_profile") {
         return {
@@ -213,9 +213,16 @@ describe("GuidedAssessmentForm", () => {
       }
       return assessment;
     });
+    const fileUploader = vi.fn(async () => ({
+      download_url: "https://files.example/coco.jpg",
+      file_id: "file-image-1",
+      file_name: "coco.jpg",
+      mime_type: "image/jpeg",
+    }));
     render(
       <GuidedAssessmentForm
         callTool={callTool}
+        fileUploader={fileUploader}
         locale="ja"
         onAssessment={vi.fn()}
       />,
@@ -237,6 +244,7 @@ describe("GuidedAssessmentForm", () => {
         files: [new File(["photo"], "coco.jpg", { type: "image/jpeg" })],
       },
     });
+    await waitFor(() => expect(fileUploader).toHaveBeenCalledTimes(1));
     fireEvent.click(screen.getByRole("button", { name: "見立てを依頼" }));
 
     await waitFor(() =>
@@ -244,7 +252,12 @@ describe("GuidedAssessmentForm", () => {
         "analyze_dog_signal",
         expect.objectContaining({
           audio: null,
-          image: { fileId: "coco.jpg", mimeType: "image/jpeg" },
+          image: {
+            download_url: "https://files.example/coco.jpg",
+            file_id: "file-image-1",
+            file_name: "coco.jpg",
+            mime_type: "image/jpeg",
+          },
         }),
       ),
     );

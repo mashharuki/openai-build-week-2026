@@ -88,6 +88,9 @@ describe("registerPawLensTools", () => {
     );
     expect(descriptors).toMatchObject({
       analyze_dog_signal: {
+        _meta: {
+          "openai/fileParams": ["image", "audio"],
+        },
         annotations: {
           destructiveHint: false,
           idempotentHint: true,
@@ -126,16 +129,41 @@ describe("registerPawLensTools", () => {
     ) as Record<string, (input: unknown) => Promise<unknown>>;
     await expect(
       handlers.analyze_dog_signal({
-        audio: null,
+        audio: {
+          download_url: "https://files.example/bark.wav",
+          duration_seconds: 4,
+          file_id: "audio-1",
+          mime_type: "audio/wav",
+        },
         barkDescription: "短く鋭い",
         context: "visitor",
         distanceToPerson: null,
         dogId: "dog-1",
-        image: null,
+        image: {
+          download_url: "https://files.example/dog.jpg",
+          file_id: "image-1",
+          mime_type: "image/jpeg",
+        },
         locale: "ja",
         precedingEvent: null,
       }),
     ).resolves.toMatchObject({ structuredContent: assessment });
+    expect(assessments.assess).toHaveBeenCalledWith(
+      scope,
+      expect.objectContaining({
+        audio: {
+          downloadUrl: "https://files.example/bark.wav",
+          durationSeconds: 4,
+          fileId: "audio-1",
+          mimeType: "audio/wav",
+        },
+        image: {
+          downloadUrl: "https://files.example/dog.jpg",
+          fileId: "image-1",
+          mimeType: "image/jpeg",
+        },
+      }),
+    );
     await expect(
       handlers.get_dog_history({ dogId: "dog-1", recentLogs: [] }),
     ).resolves.toMatchObject({ structuredContent: comparison });

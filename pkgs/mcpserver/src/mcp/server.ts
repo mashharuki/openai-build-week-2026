@@ -4,6 +4,7 @@ import type { Context } from "hono";
 
 import { createAssessmentService } from "../assessment-service.js";
 import type { AssessmentService } from "../assessment-service.js";
+import { probeAppsSdkCapabilities } from "../apps-sdk-capabilities.js";
 import { probeAudioEvidence } from "../audio-evidence.js";
 import type { WorkerRuntimeDependencies } from "../env.js";
 import {
@@ -69,11 +70,16 @@ export function registerPawLensTools(
 }
 
 export function createRuntimeAssessmentService(
-  dependencies: Pick<WorkerRuntimeDependencies, "audioAvailable" | "model">,
+  dependencies: Pick<
+    WorkerRuntimeDependencies,
+    "audioAvailable" | "fileInputsAvailable" | "model"
+  >,
   observations: ObservationLogReader,
 ) {
+  const capabilities = probeAppsSdkCapabilities(dependencies);
+
   return createAssessmentService({
-    audioCapability: probeAudioEvidence(dependencies.audioAvailable),
+    audioCapability: probeAudioEvidence(capabilities.audioEvidence),
     model: createModelAdapter(dependencies.model),
     observations,
   });
@@ -106,11 +112,12 @@ export function createMcpRuntime(
     observations,
   );
   const history = createHistoryDiff({ observations });
+  const capabilities = probeAppsSdkCapabilities(dependencies);
 
   registerHelloWidget(server, dependencies.assets);
   registerPawLensTools(server, {
     assessments,
-    conversationStable: dependencies.conversationStable ?? true,
+    conversationStable: capabilities.conversationStable,
     history,
     observations,
     profiles,

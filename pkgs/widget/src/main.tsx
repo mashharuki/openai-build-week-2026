@@ -11,7 +11,11 @@ declare global {
     openai?: {
       capabilities?: { audioEvidence?: boolean };
       callTool?: (name: string, arguments_: unknown) => Promise<unknown>;
+      getFileDownloadUrl?: (
+        input: { fileId: string },
+      ) => Promise<{ downloadUrl: string } | string>;
       locale?: Locale;
+      uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
     };
   }
 }

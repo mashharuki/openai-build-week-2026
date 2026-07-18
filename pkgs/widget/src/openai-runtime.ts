@@ -17,6 +17,52 @@ interface BridgeHost {
 export interface OpenAiToolHost {
   capabilities?: { audioEvidence?: boolean };
   callTool?: (name: string, arguments_: unknown) => Promise<unknown>;
+  getFileDownloadUrl?: (
+    input: { fileId: string },
+  ) => Promise<{ downloadUrl: string } | string>;
+  uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
+}
+
+export interface AppsSdkToolFile {
+  download_url: string;
+  duration_seconds?: number;
+  file_id: string;
+  file_name?: string;
+  mime_type?: string;
+}
+
+export type AppsSdkFileUploader = (
+  file: File,
+  durationSeconds?: number,
+) => Promise<AppsSdkToolFile | undefined>;
+
+/**
+ * Converts a widget-selected File into the documented Apps SDK file-parameter
+ * shape. A missing optional host extension fails closed so no browser-local
+ * filename is mistaken for an authorized attachment.
+ */
+export function createAppsSdkFileUploader(
+  host: OpenAiToolHost,
+): AppsSdkFileUploader {
+  return async (file, durationSeconds) => {
+    if (!host.uploadFile || !host.getFileDownloadUrl) return undefined;
+
+    const uploaded = await host.uploadFile(file);
+    const fileId = typeof uploaded === "string" ? uploaded : uploaded.fileId;
+    const result = await host.getFileDownloadUrl({ fileId });
+    const downloadUrl =
+      typeof result === "string" ? result : result.downloadUrl;
+
+    return {
+      download_url: downloadUrl,
+      ...(durationSeconds === undefined
+        ? {}
+        : { duration_seconds: durationSeconds }),
+      file_id: fileId,
+      ...(file.name ? { file_name: file.name } : {}),
+      ...(file.type ? { mime_type: file.type } : {}),
+    };
+  };
 }
 
 export function getToolCaller(
