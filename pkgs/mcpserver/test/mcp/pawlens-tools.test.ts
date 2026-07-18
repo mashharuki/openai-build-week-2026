@@ -4,6 +4,11 @@ import type {
   HistoryComparison,
   ObservationLog,
 } from "@pawlens/shared";
+import {
+  ManageDogProfileToolInputSchema,
+  OpenAiSignalToolInputSchema,
+  ProfileManagementToolOutputSchema,
+} from "@pawlens/shared";
 import { describe, expect, it, vi } from "vitest";
 
 import type { AssessmentService } from "../../src/assessment-service.js";
@@ -123,6 +128,15 @@ describe("registerPawLensTools", () => {
           readOnlyHint: false,
         },
       },
+    });
+    expect(descriptors.analyze_dog_signal).toMatchObject({
+      description: expect.stringContaining("Use this when"),
+      inputSchema: OpenAiSignalToolInputSchema,
+    });
+    expect(descriptors.manage_dog_profile).toMatchObject({
+      description: expect.stringContaining("Use this when"),
+      inputSchema: ManageDogProfileToolInputSchema,
+      outputSchema: ProfileManagementToolOutputSchema,
     });
 
     const handlers = Object.fromEntries(

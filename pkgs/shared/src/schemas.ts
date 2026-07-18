@@ -27,19 +27,39 @@ export const FileReferenceSchema = z.object({
  * `openai/fileParams`. This remains separate from FileReferenceSchema so the
  * application service never needs to depend on host-specific field names.
  */
-export const OpenAiFileReferenceSchema = z
+export const OpenAiFileReferenceToolSchema = z
   .object({
-    download_url: z.string().url(),
+    download_url: z
+      .string()
+      .url()
+      .describe("Temporary HTTPS URL from ChatGPT for downloading this file."),
     duration_seconds: z
       .number()
       .positive()
       .max(MAX_AUDIO_DURATION_SECONDS)
-      .optional(),
-    file_id: z.string().trim().min(1),
-    file_name: z.string().trim().min(1).optional(),
-    mime_type: z.string().trim().min(1).optional(),
+      .optional()
+      .describe("Audio duration in seconds, when ChatGPT provides it."),
+    file_id: z
+      .string()
+      .trim()
+      .min(1)
+      .describe("ChatGPT file identifier for the uploaded evidence."),
+    file_name: z
+      .string()
+      .trim()
+      .min(1)
+      .optional()
+      .describe("Original file name, when available."),
+    mime_type: z
+      .string()
+      .trim()
+      .min(1)
+      .optional()
+      .describe("MIME type such as audio/wav or image/jpeg."),
   })
-  .strict()
+  .strict();
+
+export const OpenAiFileReferenceSchema = OpenAiFileReferenceToolSchema
   .transform((file) =>
     FileReferenceSchema.parse({
       downloadUrl: file.download_url,
@@ -79,18 +99,58 @@ export const SignalInputSchema = z.object({
   precedingEvent: z.string().trim().max(500).nullable(),
 });
 
-export const OpenAiSignalInputSchema = z
+export const OpenAiSignalToolInputSchema = z
   .object({
-    audio: OpenAiFileReferenceSchema.nullable(),
-    barkDescription: z.string().trim().min(1).max(2_000),
-    context: SignalContextSchema,
-    distanceToPerson: z.string().trim().max(500).nullable(),
-    dogId: z.string().trim().min(1),
-    image: OpenAiFileReferenceSchema.nullable(),
-    locale: LocaleSchema,
-    precedingEvent: z.string().trim().max(500).nullable(),
+    audio: OpenAiFileReferenceToolSchema.nullable().describe(
+      "Optional audio recording of the dog's reaction. Use null when no recording is available.",
+    ),
+    barkDescription: z
+      .string()
+      .trim()
+      .min(1)
+      .max(2_000)
+      .describe(
+        "Owner's factual description of the bark or reaction, including tone, repetition, and duration when known.",
+      ),
+    context: SignalContextSchema.describe(
+      "Situation in which the reaction occurred, such as visitor, doorbell, or unknown.",
+    ),
+    distanceToPerson: z
+      .string()
+      .trim()
+      .max(500)
+      .nullable()
+      .describe("Approximate distance between the dog and the person or trigger; null if unknown."),
+    dogId: z
+      .string()
+      .trim()
+      .min(1)
+      .describe("ID of the existing PawLens dog profile to which this observation belongs."),
+    image: OpenAiFileReferenceToolSchema.nullable().describe(
+      "Optional image that shows the dog's body language or the situation. Use null when no image is available.",
+    ),
+    locale: LocaleSchema.describe("Language for the returned owner guidance."),
+    precedingEvent: z
+      .string()
+      .trim()
+      .max(500)
+      .nullable()
+      .describe("What happened immediately before the reaction; null if unknown."),
   })
-  .transform((input) => SignalInputSchema.parse(input));
+  .strict();
+
+export const OpenAiSignalInputSchema = OpenAiSignalToolInputSchema.transform(
+  (input) =>
+    SignalInputSchema.parse({
+      ...input,
+      audio: input.audio
+        ? OpenAiFileReferenceSchema.parse(input.audio)
+        : null,
+      image: input.image
+        ? OpenAiFileReferenceSchema.parse(input.image)
+        : null,
+    }),
+);
 
 export const HypothesisSchema = z.object({
   label: z.string().trim().min(1).max(300),
@@ -112,7 +172,12 @@ export const AssessmentResultSchema = z.object({
 });
 
 export const WidgetGreetingSchema = z.object({
-  greeting: z.string().trim().min(1).max(200),
+  greeting: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .describe("Short message confirming that the PawLens widget is ready."),
 });
 
 export const SaveObservationInputSchema = z
@@ -163,8 +228,63 @@ export const ManageDogProfileInputSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
+/**
+ * Object-shaped MCP descriptor for manage_dog_profile. The handler still
+ * validates the action-specific union above, while this schema lets MCP
+ * clients see every argument and its purpose in tools/list.
+ */
+export const ManageDogProfileToolInputSchema = z
+  .object({
+    action: z
+      .enum(["create", "update", "delete"])
+      .describe("Operation to perform: create a profile, update a profile, or delete a profile."),
+    confirmed: z
+      .boolean()
+      .optional()
+      .describe("Must be true when action is delete. Omit for create and update."),
+    dogId: z
+      .string()
+      .trim()
+      .min(1)
+      .optional()
+      .describe("Existing profile ID. Required for update and delete; omit for create."),
+    name: z
+      .string()
+      .trim()
+      .min(1)
+      .max(80)
+      .optional()
+      .describe("Dog's name. Required for create and update; omit for delete."),
+    temperamentNote: z
+      .string()
+      .trim()
+      .max(500)
+      .nullable()
+      .optional()
+      .describe("Optional owner-provided temperament note. Use null to clear it during update."),
+  })
+  .strict();
+
 export const ProfileManagementResultSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("created"), profile: DogProfileSchema }),
   z.object({ status: z.literal("updated"), profile: DogProfileSchema }),
   z.object({ status: z.literal("deleted"), dogId: z.string().trim().min(1) }),
 ]);
+
+/** Object-shaped output descriptor required for reliable MCP tools/list metadata. */
+export const ProfileManagementToolOutputSchema = z
+  .object({
+    dogId: z
+      .string()
+      .trim()
+      .min(1)
+      .optional()
+      .describe("Deleted profile ID. Present only when status is deleted."),
+    profile: DogProfileSchema.optional().describe(
+      "Created or updated dog profile. Present only when status is created or updated.",
+    ),
+    status: z
+      .enum(["created", "updated", "deleted"])
+      .describe("Result of the requested profile operation."),
+  })
+  .strict();

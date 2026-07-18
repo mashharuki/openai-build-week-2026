@@ -2,6 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   AssessmentResultSchema,
   OpenAiSignalInputSchema,
+  OpenAiSignalToolInputSchema,
   SignalInputSchema,
 } from "@pawlens/shared";
 
@@ -30,7 +31,9 @@ export function registerAnalyzeDogSignal(
       },
       description:
         "Use this when a dog owner describes a bark or other reaction and wants calm, non-diagnostic observation guidance. Accepts the dog's profile ID, situation, bark description, and optional image or audio evidence. Returns possible observational hypotheses, confidence, cues to watch, one safe next action, limitations, and an escalation signal when appropriate; it never provides a veterinary diagnosis.",
-      inputSchema: OpenAiSignalInputSchema,
+      // The transformed parser is ideal for the handler, but MCP's tools/list
+      // requires an object-shaped schema to publish its field descriptions.
+      inputSchema: OpenAiSignalToolInputSchema,
       outputSchema: AssessmentResultSchema,
       title: "犬の反応を見立てる",
     },

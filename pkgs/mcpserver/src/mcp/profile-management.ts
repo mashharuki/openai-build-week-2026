@@ -1,7 +1,9 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import {
   ManageDogProfileInputSchema,
+  ManageDogProfileToolInputSchema,
   ProfileManagementResultSchema,
+  ProfileManagementToolOutputSchema,
 } from "@pawlens/shared";
 
 import type { ConversationScope, ProfileRepository } from "../repositories.js";
@@ -22,8 +24,11 @@ export function registerManageDogProfile(
       },
       description:
         "Use this when the owner explicitly asks to create, update, or delete a dog profile in the current PawLens conversation. Creates or updates a name and optional temperament note, or deletes a profile only when action is delete and confirmed is true. Returns the created or updated profile, or the deleted profile ID. Do not use this merely to inspect a dog or analyze a reaction.",
-      inputSchema: ManageDogProfileInputSchema,
-      outputSchema: ProfileManagementResultSchema,
+      // Use object-shaped descriptor schemas so ChatGPT receives every field
+      // description in tools/list; the action-specific union below remains
+      // the authoritative runtime validator.
+      inputSchema: ManageDogProfileToolInputSchema,
+      outputSchema: ProfileManagementToolOutputSchema,
       title: "犬のプロフィールを管理",
     },
     async (input) => {
