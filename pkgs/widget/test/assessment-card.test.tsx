@@ -145,4 +145,13 @@ describe("AssessmentCard", () => {
 
     expect(onFollowUp).toHaveBeenCalledOnce();
   });
+
+  it("会話主導モードでは、ウィジェット内の操作ボタンを表示しない", () => {
+    render(<AssessmentCard assessment={assessment} readOnly />);
+
+    expect(screen.queryByRole("button")).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "獣医師・行動専門家に相談する" }),
+    ).toBeNull();
+  });
 });

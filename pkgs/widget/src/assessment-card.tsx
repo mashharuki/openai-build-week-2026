@@ -13,6 +13,7 @@ export interface AssessmentCardProps {
   history?: HistoryComparison;
   locale?: Locale;
   onFollowUp?: () => void | Promise<void>;
+  readOnly?: boolean;
 }
 
 export function AssessmentCard({
@@ -22,6 +23,7 @@ export function AssessmentCard({
   history,
   locale = "ja",
   onFollowUp,
+  readOnly = false,
 }: AssessmentCardProps) {
   const copy = cardCopy[locale];
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -124,16 +126,18 @@ export function AssessmentCard({
         <h3>{copy.calmAction}</h3>
         <p>{assessment.suggestedAction}</p>
       </section>
-      <section
-        aria-label={copy.observationConfirmation}
-        className="assessment-confirmation"
-      >
-        <h3>{copy.observationConfirmation}</h3>
-        <p>{copy.ownerConfirmation}</p>
-        {actions}
-      </section>
-      <ProfessionalSupportLink locale={locale} />
-      {onFollowUp ? (
+      {!readOnly ? (
+        <section
+          aria-label={copy.observationConfirmation}
+          className="assessment-confirmation"
+        >
+          <h3>{copy.observationConfirmation}</h3>
+          <p>{copy.ownerConfirmation}</p>
+          {actions}
+        </section>
+      ) : null}
+      {!readOnly ? <ProfessionalSupportLink locale={locale} /> : null}
+      {!readOnly && onFollowUp ? (
         <button
           className="conversation-follow-up"
           disabled={isSendingFollowUp}
@@ -143,15 +147,17 @@ export function AssessmentCard({
           {isSendingFollowUp ? copy.sendingFollowUp : copy.continueInChat}
         </button>
       ) : null}
-      <button
-        aria-expanded={detailsOpen}
-        className="button-secondary assessment-details-toggle"
-        onClick={() => setDetailsOpen((open) => !open)}
-        type="button"
-      >
-        {detailsOpen ? copy.hideDetails : copy.showDetails}
-      </button>
-      {detailsOpen ? (
+      {!readOnly ? (
+        <button
+          aria-expanded={detailsOpen}
+          className="button-secondary assessment-details-toggle"
+          onClick={() => setDetailsOpen((open) => !open)}
+          type="button"
+        >
+          {detailsOpen ? copy.hideDetails : copy.showDetails}
+        </button>
+      ) : null}
+      {!readOnly && detailsOpen ? (
         <section aria-label={copy.details} className="assessment-details">
           <h3>{copy.secondaryPossibilities}</h3>
           {assessment.secondaryHypotheses.length === 0 ? (

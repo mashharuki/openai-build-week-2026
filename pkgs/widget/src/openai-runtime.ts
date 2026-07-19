@@ -26,6 +26,7 @@ export interface OpenAiToolHost {
     scrollToBottom?: boolean;
   }) => Promise<void> | void;
   uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
+  toolOutput?: unknown;
 }
 
 export interface AppsSdkLibraryFile {

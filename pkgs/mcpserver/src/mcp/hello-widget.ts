@@ -5,12 +5,14 @@ import { ProfileDraftSchema, WidgetGreetingSchema } from "@pawlens/shared";
  * The URI is a ChatGPT cache key. Bump it whenever the template contract or
  * its security metadata changes.
  */
-export const HELLO_WIDGET_RESOURCE_URI = "ui://pawlens/hello-widget-v5.html";
+export const HELLO_WIDGET_RESOURCE_URI = "ui://pawlens/hello-widget-v7.html";
 
 const WIDGET_ASSET_ORIGIN =
   "https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev";
 
 const WIDGET_RESOURCE_META = {
+  "openai/widgetDescription":
+    "A read-only PawLens summary panel. The owner speaks or types in ChatGPT; do not ask them to operate controls inside the widget. Keep chat narration brief when the panel already shows the result.",
   ui: {
     // This bundle has no browser fetches or CDN assets. Keep CSP allowlists
     // explicit and empty rather than granting a broad default.
@@ -72,7 +74,7 @@ export function registerHelloWidget(server: McpServer, assets: Fetcher): void {
         readOnlyHint: true,
       },
       description:
-        "Use this when the user asks to open PawLens, begin observing their dog, or display a profile draft. When the owner supplied a name or temperament note, pass them as name and temperamentNote so the widget can display them for owner review. This tool only opens the interface and never saves or changes data.",
+        "Use this when the user asks to open PawLens or start a conversation about their dog. This opens a read-only live summary; the owner continues by typing or speaking in ChatGPT, never by operating widget controls. When the owner supplied a name or temperament note, pass them as name and temperamentNote so the panel can display them. This tool only opens the interface and never saves or changes data.",
       inputSchema: ShowPawLensInputSchema,
       outputSchema: WidgetGreetingSchema,
       title: "PawLensを表示",

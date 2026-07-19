@@ -14,6 +14,7 @@ declare global {
         { downloadUrl: string } | string
       >;
       locale?: string;
+      toolOutput?: unknown;
       sendFollowUpMessage?: (input: {
         prompt: string;
         scrollToBottom?: boolean;

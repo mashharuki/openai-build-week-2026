@@ -3,21 +3,13 @@ import { useEffect, useState } from "react";
 import {
   AssessmentResultSchema,
   type DogProfile,
-  type HistoryComparison,
   type Locale,
   ProfileManagementResultSchema,
 } from "@pawlens/shared";
 
 import { AssessmentCard } from "./assessment-card.js";
-import { GuidedAssessmentForm } from "./guided-assessment-form.js";
-import { ObservationActions } from "./observation-actions.js";
 import {
-  createAppsSdkFilePicker,
-  createAppsSdkFileUploader,
-  getDogIdFromToolInputMessage,
   getStructuredContentFromBridgeMessage,
-  getToolCaller,
-  sendFollowUpMessage,
   startMcpAppsBridge,
 } from "./openai-runtime.js";
 
@@ -78,8 +70,6 @@ export function WidgetStateView({
 }
 
 export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
-  const [dogId, setDogId] = useState<string>();
-  const [history, setHistory] = useState<HistoryComparison>();
   const [profile, setProfile] = useState<DogProfile>();
   const [profileDraft, setProfileDraft] = useState<
     Pick<DogProfile, "name" | "temperamentNote"> | undefined
@@ -87,18 +77,7 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
   const [state, setState] = useState<WidgetState>({ kind: "empty" });
 
   useEffect(() => {
-    const onMessage = (event: MessageEvent<unknown>) => {
-      // Only the embedding MCP Apps host may update tool state or supply an
-      // owner-selected dog ID; ignore messages from arbitrary frames.
-      if (event.source !== window.parent) {
-        return;
-      }
-
-      const nextContent = getStructuredContentFromBridgeMessage(event.data);
-      const toolInputDogId = getDogIdFromToolInputMessage(event.data);
-      if (toolInputDogId) {
-        setDogId(toolInputDogId);
-      }
+    const applyStructuredContent = (nextContent: unknown) => {
       const assessment = AssessmentResultSchema.safeParse(nextContent);
       if (assessment.success) {
         setState({ assessment: assessment.data, kind: "success" });
@@ -113,7 +92,6 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
           profileResult.data.status === "updated")
       ) {
         setProfile(profileResult.data.profile);
-        setDogId(profileResult.data.profile.id);
         return;
       }
 
@@ -123,11 +101,37 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
       }
     };
 
+    const onMessage = (event: MessageEvent<unknown>) => {
+      // Only the embedding MCP Apps host may update tool state or supply an
+      // owner-selected dog ID; ignore messages from arbitrary frames.
+      if (event.source !== window.parent) {
+        return;
+      }
+
+      const nextContent = getStructuredContentFromBridgeMessage(event.data);
+      applyStructuredContent(nextContent);
+    };
+
+    const onOpenAiGlobals = (event: Event) => {
+      const globals = (
+        event as CustomEvent<{ globals?: { toolOutput?: unknown } }>
+      ).detail?.globals;
+      applyStructuredContent(globals?.toolOutput);
+    };
+
     window.addEventListener("message", onMessage, { passive: true });
+    window.addEventListener("openai:set_globals", onOpenAiGlobals, {
+      passive: true,
+    });
+    // The host may make the initial tool result available before the iframe's
+    // bridge listener starts. Hydrating from the mirrored global prevents a
+    // remounted widget from falling back to its blank intake screen.
+    applyStructuredContent(window.openai?.toolOutput);
     const stopBridge = startMcpAppsBridge(window);
     return () => {
       stopBridge();
       window.removeEventListener("message", onMessage);
+      window.removeEventListener("openai:set_globals", onOpenAiGlobals);
     };
   }, []);
 
@@ -163,61 +167,57 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
       </header>
       {state.kind === "success" ? (
         <AssessmentCard
-          actions={
-            state.assessment.status !== "urgent" && dogId ? (
-              <ObservationActions
-                assessment={state.assessment}
-                callTool={getToolCaller(window.openai ?? {})}
-                dogId={dogId}
-                dogName={profile?.name}
-                locale={locale}
-                onHistoryComparison={setHistory}
-              />
-            ) : null
-          }
           assessment={state.assessment}
           dogName={profile?.name}
-          history={history}
           locale={locale}
-          onFollowUp={() =>
-            sendFollowUpMessage(
-              window,
-              locale === "ja"
-                ? `${profile?.name ?? "愛犬"}の見立てを受けて、次に確認することを教えてください。`
-                : `Based on this assessment for ${profile?.name ?? "my dog"}, what should I check next?`,
-              window.openai,
-            )
-          }
+          readOnly
         />
       ) : (
-        <WidgetStateView
-          dogName={profile?.name}
-          locale={locale}
-          state={state}
-        />
-      )}
-      {state.kind !== "success" ? (
-        <GuidedAssessmentForm
-          audioSupported={
-            // File helpers are optional ChatGPT extensions. The description-led
-            // flow remains usable when the host cannot authorize uploads.
-            typeof window.openai?.uploadFile === "function" &&
-            typeof window.openai?.getFileDownloadUrl === "function"
-          }
-          callTool={getToolCaller(window.openai ?? {})}
-          fileUploader={createAppsSdkFileUploader(window.openai ?? {})}
-          filePicker={createAppsSdkFilePicker(window.openai ?? {})}
+        <ConversationLedPanel
           locale={locale}
           profile={profile}
           profileDraft={profileDraft}
-          onDogId={setDogId}
-          onProfileChange={setProfile}
-          onAssessment={(assessment) =>
-            setState({ assessment, kind: "success" })
-          }
         />
-      ) : null}
+      )}
     </main>
+  );
+}
+
+function ConversationLedPanel({
+  locale,
+  profile,
+  profileDraft,
+}: {
+  locale: Locale;
+  profile?: DogProfile;
+  profileDraft?: Pick<DogProfile, "name" | "temperamentNote">;
+}) {
+  const visibleProfile = profile ?? profileDraft;
+
+  return (
+    <section
+      aria-label={locale === "ja" ? "PawLensの会話メモ" : "PawLens live notes"}
+      className="conversation-led-panel"
+    >
+      <p className="section-eyebrow">PAWLENS / LIVE NOTES</p>
+      {visibleProfile ? (
+        <section
+          aria-label={locale === "ja" ? "プロフィール" : "Profile"}
+          className="profile-summary"
+        >
+          <p>{locale === "ja" ? "プロフィール" : "Profile"}</p>
+          <h2>{visibleProfile.name}</h2>
+          {visibleProfile.temperamentNote ? (
+            <p>{visibleProfile.temperamentNote}</p>
+          ) : null}
+        </section>
+      ) : null}
+      <p className="conversation-led-copy">
+        {locale === "ja"
+          ? "画面下の入力欄、またはマイクで、愛犬の様子をそのまま話してください。会話から必要な情報だけをここに整理します。"
+          : "Use the ChatGPT message box or microphone to describe what you notice. PawLens will organize only the information that matters here."}
+      </p>
+    </section>
   );
 }
 

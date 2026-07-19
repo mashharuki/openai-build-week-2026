@@ -1,12 +1,6 @@
 // @vitest-environment jsdom
 
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-} from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AssessmentResult } from "@pawlens/shared";
@@ -41,6 +35,29 @@ describe("HelloWidget", () => {
     render(<HelloWidget />);
 
     expect(screen.getByRole("main").dataset.motion).toBe("reduced");
+  });
+
+  it("再生成されたウィジェットでも、ChatGPTが保持する初期結果を復元する", () => {
+    vi.stubGlobal("openai", { toolOutput: assessmentResult });
+    render(<HelloWidget />);
+
+    expect(screen.getByText("警戒している可能性")).not.toBeNull();
+    expect(screen.queryByLabelText("愛犬の名前")).toBeNull();
+  });
+
+  it("ChatGPTのグローバル更新から最新の見立てを反映する", () => {
+    render(<HelloWidget />);
+
+    act(() => {
+      window.dispatchEvent(
+        new CustomEvent("openai:set_globals", {
+          detail: { globals: { toolOutput: assessmentResult } },
+        }),
+      );
+    });
+
+    expect(screen.getByText("警戒している可能性")).not.toBeNull();
+    expect(screen.queryByLabelText("愛犬の名前")).toBeNull();
   });
 
   it("bridge初期化後にtool-resultの構造化結果をインライン描画する", () => {
@@ -78,33 +95,6 @@ describe("HelloWidget", () => {
     expect(screen.queryByLabelText("愛犬の名前")).toBeNull();
   });
 
-  it("結果からの続き相談をChatGPTのフォローアップAPIへ送る", async () => {
-    const sendFollowUpMessage = vi.fn();
-    vi.stubGlobal("openai", { sendFollowUpMessage });
-    render(<HelloWidget />);
-
-    act(() => {
-      window.dispatchEvent(
-        new MessageEvent("message", {
-          data: {
-            jsonrpc: "2.0",
-            method: "ui/notifications/tool-result",
-            params: { structuredContent: assessmentResult },
-          },
-          source: window.parent,
-        }),
-      );
-    });
-    fireEvent.click(
-      screen.getByRole("button", { name: "ChatGPTで続きを相談する" }),
-    );
-
-    expect(sendFollowUpMessage).toHaveBeenCalledWith({
-      prompt: "愛犬の見立てを受けて、次に確認することを教えてください。",
-      scrollToBottom: true,
-    });
-  });
-
   it("プロフィール管理ツールの結果をプロフィールとして描画する", () => {
     render(<HelloWidget />);
 
@@ -135,11 +125,12 @@ describe("HelloWidget", () => {
     expect(screen.getByLabelText("プロフィール")).not.toBeNull();
     expect(screen.getByRole("heading", { name: "ノア" })).not.toBeNull();
     expect(screen.getByText("やんちゃ")).not.toBeNull();
-    expect(screen.getByText("ノアの見立てを始めます")).not.toBeNull();
+    expect(screen.getByText(/画面下の入力欄、またはマイクで/)).not.toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
     expect(screen.queryByLabelText("システムエラー")).toBeNull();
   });
 
-  it("プロフィール下書きを受け取ると、保存前の入力欄へ反映する", () => {
+  it("プロフィール下書きを受け取ると、会話を続けるための要約として表示する", () => {
     render(<HelloWidget />);
 
     act(() => {
@@ -163,14 +154,9 @@ describe("HelloWidget", () => {
       );
     });
 
-    expect(screen.getByLabelText("愛犬の名前")).toHaveProperty("value", "ノア");
-    expect(screen.getByLabelText("性格メモ（任意）")).toHaveProperty(
-      "value",
-      "人見知り",
-    );
-    expect(
-      screen.getByRole("button", { name: "プロフィールを登録" }),
-    ).toHaveProperty("disabled", false);
+    expect(screen.getByRole("heading", { name: "ノア" })).not.toBeNull();
+    expect(screen.getByText("人見知り")).not.toBeNull();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 
   it("empty、loading、成功、システムエラー、緊急を区別して表示する", () => {

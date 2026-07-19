@@ -224,6 +224,32 @@ h3 {
   padding: 0.9rem 1rem;
 }
 
+.conversation-led-panel {
+  margin: 1.25rem 0 0;
+  border: 0;
+  border-left: 0.38rem solid #3d92a0;
+  border-radius: 0 1rem 1rem 0;
+  background: linear-gradient(
+    120deg,
+    rgba(233, 243, 242, 0.98),
+    rgba(248, 242, 231, 0.9)
+  );
+  box-shadow: var(--shadow-card);
+  padding: clamp(1.1rem, 3vw, 1.5rem);
+}
+
+.conversation-led-panel .section-eyebrow {
+  margin-top: 0;
+}
+
+.conversation-led-copy {
+  max-width: 42rem;
+  margin: 0;
+  color: #344f55;
+  font-size: clamp(1rem, 2.5vw, 1.13rem);
+  line-height: 1.75;
+}
+
 .conversation-alert {
   border: 0 !important;
   box-shadow: var(--shadow-card);
@@ -641,6 +667,7 @@ textarea {
   font-size: 0.8rem;
 }
 
+.profile-summary h2,
 .profile-summary h3 {
   margin: 0.12rem 0;
   color: #294b51;
