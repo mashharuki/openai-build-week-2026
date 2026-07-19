@@ -10,7 +10,11 @@ import {
   getErrorMessage,
 } from "@pawlens/shared";
 
-import type { AppsSdkFileUploader, AppsSdkToolFile } from "./openai-runtime.js";
+import type {
+  AppsSdkFilePicker,
+  AppsSdkFileUploader,
+  AppsSdkToolFile,
+} from "./openai-runtime.js";
 
 type ToolCaller = (name: string, input: unknown) => Promise<unknown>;
 type AudioDurationReader = (file: File) => Promise<number | undefined>;
@@ -19,6 +23,7 @@ export interface GuidedAssessmentFormProps {
   audioSupported?: boolean;
   callTool: ToolCaller;
   fileUploader?: AppsSdkFileUploader;
+  filePicker?: AppsSdkFilePicker;
   getAudioDuration?: AudioDurationReader;
   locale: Locale;
   onAssessment: (
@@ -39,6 +44,7 @@ export function GuidedAssessmentForm({
   audioSupported = false,
   callTool,
   fileUploader,
+  filePicker,
   getAudioDuration = readAudioDuration,
   locale,
   onAssessment,
@@ -149,6 +155,23 @@ export function GuidedAssessmentForm({
           }
         : null,
     );
+  };
+
+  const selectImageFromChatGPT = async () => {
+    if (!filePicker) return;
+    setMediaNoticeVisible(true);
+    try {
+      const imageFromLibrary = (await filePicker()).find((file) =>
+        file.mime_type?.startsWith("image/"),
+      );
+      if (imageFromLibrary) {
+        setImage(imageFromLibrary);
+        return;
+      }
+      setStatus(getErrorMessage("partial_evidence", locale));
+    } catch {
+      setStatus(getErrorMessage("partial_evidence", locale));
+    }
   };
 
   const selectAudio = async (file: File | undefined) => {
@@ -298,6 +321,15 @@ export function GuidedAssessmentForm({
               type="file"
             />
           </label>
+          {filePicker ? (
+            <button
+              className="composer-library-picker"
+              onClick={() => void selectImageFromChatGPT()}
+              type="button"
+            >
+              {copy.pickChatGptPhoto}
+            </button>
+          ) : null}
           <label
             className="composer-attachment"
             data-disabled={!audioSupported || undefined}
@@ -375,6 +407,9 @@ export function GuidedAssessmentForm({
       {!audioSupported ? (
         <p className="composer-note">{copy.audioUnavailable}</p>
       ) : null}
+      {!image ? (
+        <p className="composer-guidance">{copy.photoGuidance}</p>
+      ) : null}
       {mediaNoticeVisible ? (
         <p className="composer-note">
           {getErrorMessage("media_privacy_notice", locale)}
@@ -418,6 +453,9 @@ const formCopy = {
     requestingAssessment: "Preparing assessment…",
     startAssessment: (name: string) => `Begin ${name}'s assessment`,
     photoAttached: "Photo attached",
+    photoGuidance:
+      "A photo is optional, but it can help you describe posture and the situation.",
+    pickChatGptPhoto: "Choose from ChatGPT",
     evidenceAttached: (evidence: string) => `${evidence}. Ready to send.`,
     temperamentNote: "Temperament note (optional)",
     updateProfile: "Update profile",
@@ -452,6 +490,9 @@ const formCopy = {
     requestingAssessment: "見立てを準備しています…",
     startAssessment: (name: string) => `${name}の見立てを始めます`,
     photoAttached: "写真を添付しました",
+    photoGuidance:
+      "写真は任意です。姿勢や周囲の様子も伝えたいときだけ、添付してください。",
+    pickChatGptPhoto: "ChatGPT内の写真",
     evidenceAttached: (evidence: string) => `${evidence}。このまま送れます。`,
     temperamentNote: "性格メモ（任意）",
     updateProfile: "プロフィールを更新",

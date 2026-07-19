@@ -20,7 +20,14 @@ export interface OpenAiToolHost {
   getFileDownloadUrl?: (input: { fileId: string }) => Promise<
     { downloadUrl: string } | string
   >;
+  selectFiles?: () => Promise<AppsSdkLibraryFile[]>;
   uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
+}
+
+export interface AppsSdkLibraryFile {
+  fileId: string;
+  fileName?: string;
+  mimeType?: string;
 }
 
 export interface AppsSdkToolFile {
@@ -35,6 +42,8 @@ export type AppsSdkFileUploader = (
   file: File,
   durationSeconds?: number,
 ) => Promise<AppsSdkToolFile | undefined>;
+
+export type AppsSdkFilePicker = () => Promise<AppsSdkToolFile[]>;
 
 /**
  * Converts a widget-selected File into the documented Apps SDK file-parameter
@@ -63,6 +72,53 @@ export function createAppsSdkFileUploader(
       ...(file.type ? { mime_type: file.type } : {}),
     };
   };
+}
+
+/**
+ * Reuses files the owner already attached in ChatGPT. This is optional: hosts
+ * without the file-library extension continue to use the local upload input.
+ */
+export function createAppsSdkFilePicker(
+  host: OpenAiToolHost,
+): AppsSdkFilePicker | undefined {
+  if (!host.selectFiles || !host.getFileDownloadUrl) return undefined;
+
+  return async () => {
+    const selected = await host.selectFiles?.();
+    if (!selected) return [];
+
+    return Promise.all(
+      selected.map(async (file) => {
+        const result = await host.getFileDownloadUrl?.({ fileId: file.fileId });
+        const downloadUrl =
+          typeof result === "string" ? result : result?.downloadUrl;
+        if (!downloadUrl) return undefined;
+
+        return {
+          download_url: downloadUrl,
+          file_id: file.fileId,
+          ...(file.fileName ? { file_name: file.fileName } : {}),
+          ...(file.mimeType ? { mime_type: file.mimeType } : {}),
+        };
+      }),
+    ).then((files) =>
+      files.filter((file): file is AppsSdkToolFile => file !== undefined),
+    );
+  };
+}
+
+export function sendFollowUpMessage(
+  host: Pick<BridgeHost, "parent">,
+  text: string,
+): void {
+  host.parent.postMessage(
+    {
+      jsonrpc: "2.0",
+      method: "ui/message",
+      params: { content: [{ text, type: "text" }], role: "user" },
+    },
+    "*",
+  );
 }
 
 export function getToolCaller(

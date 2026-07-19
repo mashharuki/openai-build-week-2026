@@ -14,6 +14,9 @@ declare global {
         { downloadUrl: string } | string
       >;
       locale?: string;
+      selectFiles?: () => Promise<
+        Array<{ fileId: string; fileName?: string; mimeType?: string }>
+      >;
       uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
     };
   }

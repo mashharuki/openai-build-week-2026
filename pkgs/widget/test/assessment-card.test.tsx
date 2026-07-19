@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AssessmentResult, HistoryComparison } from "@pawlens/shared";
 
@@ -133,5 +133,16 @@ describe("AssessmentCard", () => {
     button.focus();
     expect(document.activeElement).toBe(button);
     expect(screen.getByText("確信度: 低")).not.toBeNull();
+  });
+
+  it("必要に応じてChatGPTへ続きの相談を投稿できる", () => {
+    const onFollowUp = vi.fn();
+    render(<AssessmentCard assessment={assessment} onFollowUp={onFollowUp} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "ChatGPTで続きを相談する" }),
+    );
+
+    expect(onFollowUp).toHaveBeenCalledOnce();
   });
 });

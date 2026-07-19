@@ -11,10 +11,12 @@ import { AssessmentCard } from "./assessment-card.js";
 import { GuidedAssessmentForm } from "./guided-assessment-form.js";
 import { ObservationActions } from "./observation-actions.js";
 import {
+  createAppsSdkFilePicker,
   createAppsSdkFileUploader,
   getDogIdFromToolInputMessage,
   getStructuredContentFromBridgeMessage,
   getToolCaller,
+  sendFollowUpMessage,
   startMcpAppsBridge,
 } from "./openai-runtime.js";
 
@@ -155,6 +157,14 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
           dogName={profile?.name}
           history={history}
           locale={locale}
+          onFollowUp={() =>
+            sendFollowUpMessage(
+              window,
+              locale === "ja"
+                ? `${profile?.name ?? "愛犬"}の見立てを受けて、次に確認することを教えてください。`
+                : `Based on this assessment for ${profile?.name ?? "my dog"}, what should I check next?`,
+            )
+          }
         />
       ) : (
         <WidgetStateView
@@ -172,6 +182,7 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
         }
         callTool={getToolCaller(window.openai ?? {})}
         fileUploader={createAppsSdkFileUploader(window.openai ?? {})}
+        filePicker={createAppsSdkFilePicker(window.openai ?? {})}
         locale={locale}
         onDogId={setDogId}
         onProfileChange={setProfile}

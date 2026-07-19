@@ -12,6 +12,7 @@ export interface AssessmentCardProps {
   dogName?: string;
   history?: HistoryComparison;
   locale?: Locale;
+  onFollowUp?: () => void;
 }
 
 export function AssessmentCard({
@@ -20,6 +21,7 @@ export function AssessmentCard({
   dogName,
   history,
   locale = "ja",
+  onFollowUp,
 }: AssessmentCardProps) {
   const copy = cardCopy[locale];
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -119,6 +121,15 @@ export function AssessmentCard({
         {actions}
       </section>
       <ProfessionalSupportLink locale={locale} />
+      {onFollowUp ? (
+        <button
+          className="conversation-follow-up"
+          onClick={onFollowUp}
+          type="button"
+        >
+          {copy.continueInChat}
+        </button>
+      ) : null}
       <button
         aria-expanded={detailsOpen}
         className="button-secondary assessment-details-toggle"
@@ -177,6 +188,7 @@ const cardCopy = {
     calmAction: "A calm next step",
     confidence: "Confidence",
     confirmedObservation: "Owner-confirmed observation",
+    continueInChat: "Continue in ChatGPT",
     describeObservation: (point: string) => `Please check ${point} yourself.`,
     details: "Assessment details",
     displayError:
@@ -214,6 +226,7 @@ const cardCopy = {
     calmAction: "安全で低刺激な次の一手",
     confidence: "確信度",
     confirmedObservation: "飼い主が確認した観察",
+    continueInChat: "ChatGPTで続きを相談する",
     describeObservation: (point: string) =>
       `${point}を飼い主自身で確認してください。`,
     details: "見立ての詳細",

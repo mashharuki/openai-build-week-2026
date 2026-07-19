@@ -374,6 +374,17 @@ section[data-state="error"].conversation-alert {
   margin: 1.15rem 0 0;
 }
 
+.conversation-follow-up {
+  margin: 1rem 0 0;
+  background: #3d92a0;
+  box-shadow: 0 0.28rem 0 #276b75;
+}
+
+.conversation-follow-up:hover:not(:disabled) {
+  background: #327d89;
+  box-shadow: 0 0.16rem 0 #276b75;
+}
+
 .assessment-details {
   border-top: 1px dashed #cdbca8 !important;
   padding-top: 1rem;
@@ -563,6 +574,22 @@ textarea {
   opacity: 0.42;
 }
 
+.composer-library-picker {
+  min-height: 2.25rem;
+  border: 1px solid #d7cbbc;
+  background: transparent;
+  box-shadow: none;
+  color: #586276;
+  font-size: 0.75rem;
+  padding: 0.35rem 0.58rem;
+}
+
+.composer-library-picker:hover:not(:disabled) {
+  background: #f3eade;
+  box-shadow: none;
+  transform: none;
+}
+
 .composer-submit {
   display: grid;
   width: 2.4rem;
@@ -577,10 +604,15 @@ textarea {
 }
 
 .attachment-status,
-.composer-note {
+.composer-note,
+.composer-guidance {
   margin: 0.65rem 0 0;
   color: #7e7569;
   font-size: 0.8rem;
+}
+
+.composer-guidance {
+  margin-top: 0.5rem;
 }
 
 .attachment-status {
@@ -858,6 +890,15 @@ section[data-state="error"] {
   }
 
   .composer-attachment:hover {
+    background: #344154;
+  }
+
+  .composer-library-picker {
+    border-color: #596375;
+    color: #d0c2b5;
+  }
+
+  .composer-library-picker:hover:not(:disabled) {
     background: #344154;
   }
 
