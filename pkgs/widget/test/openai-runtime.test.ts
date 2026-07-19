@@ -68,10 +68,10 @@ describe("getStructuredContentFromBridgeMessage", () => {
     expect(getFileDownloadUrl).toHaveBeenCalledWith({ fileId: "file-photo-1" });
   });
 
-  it("ChatGPTの会話へフォローアップを投稿する", () => {
+  it("ChatGPTの会話へフォローアップを投稿する", async () => {
     const postMessage = vi.fn();
 
-    sendFollowUpMessage(
+    await sendFollowUpMessage(
       { parent: { postMessage } },
       "次に確認することを教えてください。",
     );
@@ -89,6 +89,23 @@ describe("getStructuredContentFromBridgeMessage", () => {
       },
       "*",
     );
+  });
+
+  it("ChatGPTでは公式のフォローアップAPIを優先する", async () => {
+    const send = vi.fn();
+    const postMessage = vi.fn();
+
+    await sendFollowUpMessage(
+      { parent: { postMessage } },
+      "次に確認することを教えてください。",
+      { sendFollowUpMessage: send },
+    );
+
+    expect(send).toHaveBeenCalledWith({
+      prompt: "次に確認することを教えてください。",
+      scrollToBottom: true,
+    });
+    expect(postMessage).not.toHaveBeenCalled();
   });
 
   it("Apps SDKのcallToolとtool-inputから、明示操作に必要な型付き経路を提供する", async () => {

@@ -12,7 +12,7 @@ export interface AssessmentCardProps {
   dogName?: string;
   history?: HistoryComparison;
   locale?: Locale;
-  onFollowUp?: () => void;
+  onFollowUp?: () => void | Promise<void>;
 }
 
 export function AssessmentCard({
@@ -25,6 +25,7 @@ export function AssessmentCard({
 }: AssessmentCardProps) {
   const copy = cardCopy[locale];
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isSendingFollowUp, setIsSendingFollowUp] = useState(false);
   const additionalQuestion =
     assessment.additionalQuestion ??
     (assessment.confidence === "low" ? copy.fallbackQuestion : null);
@@ -62,6 +63,17 @@ export function AssessmentCard({
       </section>
     );
   }
+
+  const handleFollowUp = async () => {
+    if (!onFollowUp || isSendingFollowUp) return;
+
+    setIsSendingFollowUp(true);
+    try {
+      await onFollowUp();
+    } finally {
+      setIsSendingFollowUp(false);
+    }
+  };
 
   return (
     <section
@@ -124,10 +136,11 @@ export function AssessmentCard({
       {onFollowUp ? (
         <button
           className="conversation-follow-up"
-          onClick={onFollowUp}
+          disabled={isSendingFollowUp}
+          onClick={() => void handleFollowUp()}
           type="button"
         >
-          {copy.continueInChat}
+          {isSendingFollowUp ? copy.sendingFollowUp : copy.continueInChat}
         </button>
       ) : null}
       <button
@@ -189,6 +202,7 @@ const cardCopy = {
     confidence: "Confidence",
     confirmedObservation: "Owner-confirmed observation",
     continueInChat: "Continue in ChatGPT",
+    sendingFollowUp: "Opening ChatGPT…",
     describeObservation: (point: string) => `Please check ${point} yourself.`,
     details: "Assessment details",
     displayError:
@@ -227,6 +241,7 @@ const cardCopy = {
     confidence: "確信度",
     confirmedObservation: "飼い主が確認した観察",
     continueInChat: "ChatGPTで続きを相談する",
+    sendingFollowUp: "ChatGPTを開いています…",
     describeObservation: (point: string) =>
       `${point}を飼い主自身で確認してください。`,
     details: "見立ての詳細",

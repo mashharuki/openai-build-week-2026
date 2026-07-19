@@ -47,8 +47,8 @@ describe("registerManageDogProfile", () => {
       "manage_dog_profile",
       expect.objectContaining({
         _meta: {
-          "openai/outputTemplate": "ui://pawlens/hello-widget-v4.html",
-          ui: { resourceUri: "ui://pawlens/hello-widget-v4.html" },
+          "openai/outputTemplate": "ui://pawlens/hello-widget-v5.html",
+          ui: { resourceUri: "ui://pawlens/hello-widget-v5.html" },
         },
         annotations: {
           destructiveHint: true,

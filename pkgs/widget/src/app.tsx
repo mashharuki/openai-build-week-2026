@@ -185,6 +185,7 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
               locale === "ja"
                 ? `${profile?.name ?? "愛犬"}の見立てを受けて、次に確認することを教えてください。`
                 : `Based on this assessment for ${profile?.name ?? "my dog"}, what should I check next?`,
+              window.openai,
             )
           }
         />
@@ -195,23 +196,27 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
           state={state}
         />
       )}
-      <GuidedAssessmentForm
-        audioSupported={
-          // File helpers are optional ChatGPT extensions. The description-led
-          // flow remains usable when the host cannot authorize uploads.
-          typeof window.openai?.uploadFile === "function" &&
-          typeof window.openai?.getFileDownloadUrl === "function"
-        }
-        callTool={getToolCaller(window.openai ?? {})}
-        fileUploader={createAppsSdkFileUploader(window.openai ?? {})}
-        filePicker={createAppsSdkFilePicker(window.openai ?? {})}
-        locale={locale}
-        profile={profile}
-        profileDraft={profileDraft}
-        onDogId={setDogId}
-        onProfileChange={setProfile}
-        onAssessment={(assessment) => setState({ assessment, kind: "success" })}
-      />
+      {state.kind !== "success" ? (
+        <GuidedAssessmentForm
+          audioSupported={
+            // File helpers are optional ChatGPT extensions. The description-led
+            // flow remains usable when the host cannot authorize uploads.
+            typeof window.openai?.uploadFile === "function" &&
+            typeof window.openai?.getFileDownloadUrl === "function"
+          }
+          callTool={getToolCaller(window.openai ?? {})}
+          fileUploader={createAppsSdkFileUploader(window.openai ?? {})}
+          filePicker={createAppsSdkFilePicker(window.openai ?? {})}
+          locale={locale}
+          profile={profile}
+          profileDraft={profileDraft}
+          onDogId={setDogId}
+          onProfileChange={setProfile}
+          onAssessment={(assessment) =>
+            setState({ assessment, kind: "success" })
+          }
+        />
+      ) : null}
     </main>
   );
 }

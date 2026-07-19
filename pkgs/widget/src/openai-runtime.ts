@@ -21,6 +21,10 @@ export interface OpenAiToolHost {
     { downloadUrl: string } | string
   >;
   selectFiles?: () => Promise<AppsSdkLibraryFile[]>;
+  sendFollowUpMessage?: (input: {
+    prompt: string;
+    scrollToBottom?: boolean;
+  }) => Promise<void> | void;
   uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
 }
 
@@ -110,7 +114,14 @@ export function createAppsSdkFilePicker(
 export function sendFollowUpMessage(
   host: Pick<BridgeHost, "parent">,
   text: string,
-): void {
+  openAiHost: Pick<OpenAiToolHost, "sendFollowUpMessage"> = {},
+): Promise<void> {
+  if (openAiHost.sendFollowUpMessage) {
+    return Promise.resolve(
+      openAiHost.sendFollowUpMessage({ prompt: text, scrollToBottom: true }),
+    );
+  }
+
   host.parent.postMessage(
     {
       jsonrpc: "2.0",
@@ -119,6 +130,7 @@ export function sendFollowUpMessage(
     },
     "*",
   );
+  return Promise.resolve();
 }
 
 export function getToolCaller(

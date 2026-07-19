@@ -14,6 +14,10 @@ declare global {
         { downloadUrl: string } | string
       >;
       locale?: string;
+      sendFollowUpMessage?: (input: {
+        prompt: string;
+        scrollToBottom?: boolean;
+      }) => Promise<void> | void;
       selectFiles?: () => Promise<
         Array<{ fileId: string; fileName?: string; mimeType?: string }>
       >;

@@ -1,6 +1,12 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { AssessmentResult } from "@pawlens/shared";
@@ -69,6 +75,34 @@ describe("HelloWidget", () => {
       { jsonrpc: "2.0", method: "ui/notifications/initialized", params: {} },
       "*",
     );
+    expect(screen.queryByLabelText("愛犬の名前")).toBeNull();
+  });
+
+  it("結果からの続き相談をChatGPTのフォローアップAPIへ送る", async () => {
+    const sendFollowUpMessage = vi.fn();
+    vi.stubGlobal("openai", { sendFollowUpMessage });
+    render(<HelloWidget />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          data: {
+            jsonrpc: "2.0",
+            method: "ui/notifications/tool-result",
+            params: { structuredContent: assessmentResult },
+          },
+          source: window.parent,
+        }),
+      );
+    });
+    fireEvent.click(
+      screen.getByRole("button", { name: "ChatGPTで続きを相談する" }),
+    );
+
+    expect(sendFollowUpMessage).toHaveBeenCalledWith({
+      prompt: "愛犬の見立てを受けて、次に確認することを教えてください。",
+      scrollToBottom: true,
+    });
   });
 
   it("プロフィール管理ツールの結果をプロフィールとして描画する", () => {

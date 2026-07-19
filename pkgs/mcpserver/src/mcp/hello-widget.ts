@@ -5,7 +5,7 @@ import { ProfileDraftSchema, WidgetGreetingSchema } from "@pawlens/shared";
  * The URI is a ChatGPT cache key. Bump it whenever the template contract or
  * its security metadata changes.
  */
-export const HELLO_WIDGET_RESOURCE_URI = "ui://pawlens/hello-widget-v4.html";
+export const HELLO_WIDGET_RESOURCE_URI = "ui://pawlens/hello-widget-v5.html";
 
 const WIDGET_ASSET_ORIGIN =
   "https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev";
