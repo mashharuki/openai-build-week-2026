@@ -148,7 +148,9 @@ describe("createApp", () => {
     expect(getByName).toHaveBeenCalledWith("session-owner");
     expect(fetchSession).toHaveBeenCalledTimes(1);
     const forwardedRequest = fetchSession.mock.calls[0]![0];
-    expect(forwardedRequest.headers.get("mcp-session-id")).toBe("session-owner");
+    expect(forwardedRequest.headers.get("mcp-session-id")).toBe(
+      "session-owner",
+    );
     expect(forwardedRequest.headers.get("x-pawlens-session-id")).toBe(
       "session-owner",
     );

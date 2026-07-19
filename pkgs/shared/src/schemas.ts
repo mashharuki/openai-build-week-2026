@@ -59,8 +59,8 @@ export const OpenAiFileReferenceToolSchema = z
   })
   .strict();
 
-export const OpenAiFileReferenceSchema = OpenAiFileReferenceToolSchema
-  .transform((file) =>
+export const OpenAiFileReferenceSchema =
+  OpenAiFileReferenceToolSchema.transform((file) =>
     FileReferenceSchema.parse({
       downloadUrl: file.download_url,
       durationSeconds: file.duration_seconds,
@@ -128,7 +128,9 @@ export const OpenAiSignalToolInputSchema = z
       .string()
       .trim()
       .min(1)
-      .describe("ID of the existing PawLens dog profile to which this observation belongs."),
+      .describe(
+        "ID of the existing PawLens dog profile to which this observation belongs.",
+      ),
     image: OpenAiFileReferenceToolSchema.nullable().describe(
       "Optional image that shows the dog's body language or the situation. Use null when no image is available.",
     ),
@@ -138,7 +140,9 @@ export const OpenAiSignalToolInputSchema = z
       .trim()
       .max(500)
       .nullable()
-      .describe("What happened immediately before the reaction; null if unknown."),
+      .describe(
+        "What happened immediately before the reaction; null if unknown.",
+      ),
   })
   .strict();
 
@@ -146,16 +150,12 @@ export const OpenAiSignalInputSchema = OpenAiSignalToolInputSchema.transform(
   (input) =>
     SignalInputSchema.parse({
       ...input,
-      audio: input.audio
-        ? OpenAiFileReferenceSchema.parse(input.audio)
-        : null,
+      audio: input.audio ? OpenAiFileReferenceSchema.parse(input.audio) : null,
       distanceToPerson:
         input.distance_to_trigger_meters === null
           ? null
           : `${input.distance_to_trigger_meters} m`,
-      image: input.image
-        ? OpenAiFileReferenceSchema.parse(input.image)
-        : null,
+      image: input.image ? OpenAiFileReferenceSchema.parse(input.image) : null,
     }),
 );
 
@@ -244,17 +244,23 @@ export const ManageDogProfileToolInputSchema = z
   .object({
     action: z
       .enum(["create", "update", "delete"])
-      .describe("Operation to perform: create a profile, update a profile, or delete a profile."),
+      .describe(
+        "Operation to perform: create a profile, update a profile, or delete a profile.",
+      ),
     confirmed: z
       .boolean()
       .optional()
-      .describe("Must be true when action is delete. Omit for create and update."),
+      .describe(
+        "Must be true when action is delete. Omit for create and update.",
+      ),
     dogId: z
       .string()
       .trim()
       .min(1)
       .optional()
-      .describe("Existing profile ID. Required for update and delete; omit for create."),
+      .describe(
+        "Existing profile ID. Required for update and delete; omit for create.",
+      ),
     name: z
       .string()
       .trim()
@@ -268,7 +274,9 @@ export const ManageDogProfileToolInputSchema = z
       .max(500)
       .nullable()
       .optional()
-      .describe("Optional owner-provided temperament note. Use null to clear it during update."),
+      .describe(
+        "Optional owner-provided temperament note. Use null to clear it during update.",
+      ),
   })
   .strict();
 

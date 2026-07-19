@@ -124,10 +124,12 @@ export function ObservationActions({
   };
 
   return (
-    <section aria-label={copy.sectionLabel}>
+    <section aria-label={copy.sectionLabel} className="record-composer">
       {dogName ? <h2>{copy.recordTitle(dogName)}</h2> : null}
-      <p>{getErrorMessage("privacy_notice", locale)}</p>
-      <label>
+      <p className="assistant-prompt">
+        {getErrorMessage("privacy_notice", locale)}
+      </p>
+      <label className="confirmation-check">
         <input
           checked={privacyConfirmed}
           onChange={(event) => setPrivacyConfirmed(event.target.checked)}
@@ -135,8 +137,10 @@ export function ObservationActions({
         />
         {copy.privacyConfirmed}
       </label>
-      <p>{getErrorMessage("media_privacy_notice", locale)}</p>
-      <fieldset>
+      <p className="record-note">
+        {getErrorMessage("media_privacy_notice", locale)}
+      </p>
+      <fieldset className="cue-picker">
         <legend>{copy.confirmedObservations}</legend>
         {assessment.observationPoints.map((cue) => (
           <label key={cue}>
@@ -150,27 +154,32 @@ export function ObservationActions({
         ))}
       </fieldset>
       <button
+        className="record-save"
         disabled={!privacyConfirmed || confirmedCues.length === 0}
         onClick={() => void saveObservation()}
         type="button"
       >
         {dogName ? copy.saveNamed(dogName) : copy.save}
       </button>
-      <label>
-        <input
-          checked={deletionConfirmed}
-          onChange={(event) => setDeletionConfirmed(event.target.checked)}
-          type="checkbox"
-        />
-        {copy.deletionConfirmed}
-      </label>
-      <button
-        disabled={!deletionConfirmed}
-        onClick={() => void deleteProfile()}
-        type="button"
-      >
-        {copy.deleteProfile}
-      </button>
+      <details className="profile-danger-zone">
+        <summary>{copy.profileSettings}</summary>
+        <label className="confirmation-check">
+          <input
+            checked={deletionConfirmed}
+            onChange={(event) => setDeletionConfirmed(event.target.checked)}
+            type="checkbox"
+          />
+          {copy.deletionConfirmed}
+        </label>
+        <button
+          className="button-secondary destructive-action"
+          disabled={!deletionConfirmed}
+          onClick={() => void deleteProfile()}
+          type="button"
+        >
+          {copy.deleteProfile}
+        </button>
+      </details>
       {status ? <output aria-live="polite">{status}</output> : null}
       {recentLogs.length > 0 && dogName ? (
         <p>{copy.savedDisplay(dogName)}</p>
@@ -187,6 +196,7 @@ const observationCopy = {
       "I understand that this dog's saved observations will also be deleted",
     deleteProfile: "Delete profile",
     privacyConfirmed: "I have reviewed what is saved and how to delete it",
+    profileSettings: "Profile settings",
     recordTitle: (name: string) => `${name}'s observation record`,
     save: "Save observation",
     sectionLabel: "Confirmed observation actions",
@@ -200,6 +210,7 @@ const observationCopy = {
     deletionConfirmed: "この犬の保存済み観察も削除されることを確認しました",
     deleteProfile: "プロフィールを削除",
     privacyConfirmed: "保存内容と削除方法を確認しました",
+    profileSettings: "プロフィール設定",
     recordTitle: (name: string) => `${name}の観察記録`,
     save: "観察を保存",
     sectionLabel: "確認済み観察の操作",

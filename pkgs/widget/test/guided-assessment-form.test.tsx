@@ -114,7 +114,11 @@ describe("GuidedAssessmentForm", () => {
         "プロフィールを保存できませんでした。接続を確認してからもう一度お試しください。",
       ),
     ).not.toBeNull();
-    expect(screen.queryByText("見立てを準備できませんでした。入力を見直してからもう一度お試しください。")).toBeNull();
+    expect(
+      screen.queryByText(
+        "見立てを準備できませんでした。入力を見直してからもう一度お試しください。",
+      ),
+    ).toBeNull();
   });
 
   it("個体名がなければ見立てを開始できず、登録後は記述と状況だけで送信できる", async () => {

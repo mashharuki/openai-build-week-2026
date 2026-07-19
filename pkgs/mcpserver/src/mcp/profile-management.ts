@@ -52,10 +52,10 @@ export function registerManageDogProfile(
           );
 
           return profile
-          ? {
-              content: [],
-              structuredContent: { profile, status: "updated" as const },
-            }
+            ? {
+                content: [],
+                structuredContent: { profile, status: "updated" as const },
+              }
             : profileNotFound();
         }
 
@@ -88,7 +88,9 @@ export function registerManageDogProfile(
   );
 }
 
-function requestedAction(input: unknown): "create" | "update" | "delete" | "unknown" {
+function requestedAction(
+  input: unknown,
+): "create" | "update" | "delete" | "unknown" {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return "unknown";
   }

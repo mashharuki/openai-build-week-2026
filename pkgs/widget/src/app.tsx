@@ -31,7 +31,7 @@ export function WidgetStateView({
 }) {
   if (state.kind === "empty") {
     return (
-      <p>
+      <p className="conversation-state">
         {locale === "en"
           ? "Ready to begin an assessment."
           : "見立てを始める準備ができました。"}
@@ -41,7 +41,7 @@ export function WidgetStateView({
 
   if (state.kind === "loading") {
     return (
-      <output>
+      <output className="conversation-state">
         {locale === "en"
           ? "Preparing the assessment."
           : "見立てを準備しています。"}
@@ -54,6 +54,7 @@ export function WidgetStateView({
       <section
         aria-label={locale === "en" ? "System error" : "システムエラー"}
         data-state="error"
+        className="conversation-alert"
         role="alert"
         style={{ color: "rgb(185, 28, 28)" }}
       >

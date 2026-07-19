@@ -89,13 +89,16 @@ export function createMcpRuntime(
   dependencies: WorkerRuntimeDependencies,
   scope = createConversationScope(),
 ): McpRuntime {
-  const server = new McpServer({
-    name: "pawlens-mcpserver",
-    version: "0.0.0",
-  }, {
-    instructions:
-      "Use PawLens for calm, non-diagnostic dog-observation support. Open the PawLens widget to start. Create or update a profile only when the owner explicitly requests it; save observations only after owner confirmation. For urgent or worsening signs, direct the owner to a veterinarian rather than treating tool output as medical advice.",
-  });
+  const server = new McpServer(
+    {
+      name: "pawlens-mcpserver",
+      version: "0.0.0",
+    },
+    {
+      instructions:
+        "Use PawLens for calm, non-diagnostic dog-observation support. Open the PawLens widget to start. Create or update a profile only when the owner explicitly requests it; save observations only after owner confirmation. For urgent or worsening signs, direct the owner to a veterinarian rather than treating tool output as medical advice.",
+    },
+  );
   const transport = new StreamableHTTPTransport({
     sessionIdGenerator: () => scope,
   });

@@ -31,6 +31,7 @@ export function AssessmentCard({
     return (
       <section
         aria-label={copy.systemError}
+        className="conversation-alert"
         data-state="error"
         role="alert"
         style={{ color: "rgb(185, 28, 28)" }}
@@ -46,6 +47,7 @@ export function AssessmentCard({
     return (
       <section
         aria-label={copy.urgentGuidance}
+        className="conversation-alert"
         data-state="urgent"
         role="alert"
         style={{ color: "rgb(180, 83, 9)" }}
@@ -60,12 +62,19 @@ export function AssessmentCard({
   }
 
   return (
-    <section aria-label={copy.assessment} data-state="assessment">
-      <header>
-        <p>{copy.educationalNotice}</p>
+    <section
+      aria-label={copy.assessment}
+      className="assessment-thread"
+      data-state="assessment"
+    >
+      <header className="assessment-opening">
+        <p className="assistant-prompt">{copy.educationalNotice}</p>
         <h2>{dogName ? copy.namedAssessment(dogName) : copy.assessment}</h2>
       </header>
-      <section aria-label={copy.primaryPossibility}>
+      <section
+        aria-label={copy.primaryPossibility}
+        className="assessment-focus"
+      >
         <h3>{copy.primaryPossibility}</h3>
         <p>
           <span>{assessment.primaryHypothesis.label}</span>
@@ -73,10 +82,10 @@ export function AssessmentCard({
         </p>
         <p>{assessment.primaryHypothesis.rationale}</p>
       </section>
-      <p>
+      <p className="assessment-confidence">
         {copy.confidence}: {confidenceLabels[assessment.confidence][locale]}
       </p>
-      <section aria-label={copy.evidenceSources}>
+      <section aria-label={copy.evidenceSources} className="assessment-detail">
         <h3>{copy.evidenceSources}</h3>
         <ul>
           {assessment.evidenceSources.includes("research") ? (
@@ -87,21 +96,24 @@ export function AssessmentCard({
           ) : null}
         </ul>
       </section>
-      <section aria-label={copy.limitations}>
+      <section aria-label={copy.limitations} className="assessment-detail">
         <h3>{copy.limitations}</h3>
         <p>{assessment.limitations}</p>
       </section>
       {additionalQuestion ? (
-        <section aria-label={copy.nextQuestion}>
+        <section aria-label={copy.nextQuestion} className="assessment-detail">
           <h3>{copy.nextQuestion}</h3>
           <p>{additionalQuestion}</p>
         </section>
       ) : null}
-      <section aria-label={copy.calmAction}>
+      <section aria-label={copy.calmAction} className="assessment-action">
         <h3>{copy.calmAction}</h3>
         <p>{assessment.suggestedAction}</p>
       </section>
-      <section aria-label={copy.observationConfirmation}>
+      <section
+        aria-label={copy.observationConfirmation}
+        className="assessment-confirmation"
+      >
         <h3>{copy.observationConfirmation}</h3>
         <p>{copy.ownerConfirmation}</p>
         {actions}
@@ -109,13 +121,14 @@ export function AssessmentCard({
       <ProfessionalSupportLink locale={locale} />
       <button
         aria-expanded={detailsOpen}
+        className="button-secondary assessment-details-toggle"
         onClick={() => setDetailsOpen((open) => !open)}
         type="button"
       >
         {detailsOpen ? copy.hideDetails : copy.showDetails}
       </button>
       {detailsOpen ? (
-        <section aria-label={copy.details}>
+        <section aria-label={copy.details} className="assessment-details">
           <h3>{copy.secondaryPossibilities}</h3>
           {assessment.secondaryHypotheses.length === 0 ? (
             <p>{copy.noSecondaryPossibilities}</p>

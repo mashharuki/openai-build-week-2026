@@ -190,7 +190,10 @@ export function GuidedAssessmentForm({
 
   if (!profile || editingProfile) {
     return (
-      <section aria-labelledby="profile-start-title" className="intake-card">
+      <section
+        aria-labelledby="profile-start-title"
+        className="intake-card conversation-panel profile-panel"
+      >
         <p className="section-eyebrow">PAWLENS / PROFILE</p>
         <ol
           aria-label={locale === "ja" ? "見立ての手順" : "Assessment steps"}
@@ -205,11 +208,11 @@ export function GuidedAssessmentForm({
             {locale === "ja" ? "反応を観察する" : "Observe the response"}
           </li>
         </ol>
-        <p className="section-intro">
+        <p className="section-intro assistant-prompt">
           {profile ? copy.updateProfileIntro : copy.createProfileIntro}
         </p>
         <h2 id="profile-start-title">{copy.profileTitle}</h2>
-        <div className="form-grid">
+        <div className="form-grid profile-reply">
           <label className="form-field">
             <span>{copy.dogName}</span>
             <input
@@ -256,9 +259,14 @@ export function GuidedAssessmentForm({
   }
 
   return (
-    <section aria-labelledby="guided-assessment-title" className="intake-card">
+    <section
+      aria-labelledby="guided-assessment-title"
+      className="intake-card conversation-panel observation-panel"
+    >
       <p className="section-eyebrow">PAWLENS / OBSERVATION</p>
-      <p className="section-intro">{copy.startAssessment(profile.name)}</p>
+      <p className="section-intro assistant-prompt">
+        {copy.startAssessment(profile.name)}
+      </p>
       <button
         className="button-secondary"
         onClick={() => setEditingProfile(true)}
@@ -267,81 +275,111 @@ export function GuidedAssessmentForm({
         {copy.editProfile}
       </button>
       <h2 id="guided-assessment-title">{copy.observationTitle}</h2>
-      <div className="form-grid">
-        <label className="form-field form-field-wide">
-          {copy.barkDescription}
+      {/* A familiar chat composer keeps the observation, media, and request in one place. */}
+      <div className="observation-composer">
+        <label className="composer-message" htmlFor="observation-message">
+          <span>{copy.barkDescription}</span>
           <textarea
+            id="observation-message"
             onChange={(event) => setBarkDescription(event.target.value)}
+            placeholder={copy.messagePlaceholder}
             value={barkDescription}
           />
         </label>
-        <label className="form-field">
-          {copy.precedingEvent}
-          <input
-            onChange={(event) => setPrecedingEvent(event.target.value)}
-            type="text"
-            value={precedingEvent}
-          />
-        </label>
-        <label className="form-field">
-          {copy.distance}
-          <input
-            onChange={(event) => setDistanceToPerson(event.target.value)}
-            type="text"
-            value={distanceToPerson}
-          />
-        </label>
-        <label className="form-field">
-          {copy.context}
-          <select
-            onChange={(event) =>
-              setContext(
-                event.target.value as (typeof contextOptions)[number]["value"],
-              )
-            }
-            value={context}
+        <div className="composer-toolbar">
+          <label className="composer-attachment">
+            <span aria-hidden="true">＋</span>
+            {copy.addPhoto}
+            <input
+              accept="image/*"
+              aria-label={copy.addPhoto}
+              onChange={(event) => void selectImage(event.target.files?.[0])}
+              onClick={() => setMediaNoticeVisible(true)}
+              type="file"
+            />
+          </label>
+          <label
+            className="composer-attachment"
+            data-disabled={!audioSupported || undefined}
           >
-            {contextOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {formCopy[locale].contextOptions[option.value]}
-              </option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <fieldset>
-        <legend>{copy.optionalEvidence}</legend>
-        <label>
-          {copy.addPhoto}
-          <input
-            accept="image/*"
-            onChange={(event) => void selectImage(event.target.files?.[0])}
-            onClick={() => setMediaNoticeVisible(true)}
-            type="file"
-          />
-        </label>
-        <label>
-          {copy.addAudio}
-          <input
-            accept="audio/*"
-            disabled={!audioSupported}
-            onChange={(event) => void selectAudio(event.target.files?.[0])}
-            onClick={() => setMediaNoticeVisible(true)}
-            type="file"
-          />
-        </label>
-        {!audioSupported ? <p>{copy.audioUnavailable}</p> : null}
-        {mediaNoticeVisible ? (
-          <p>{getErrorMessage("media_privacy_notice", locale)}</p>
+            <span aria-hidden="true">⌁</span>
+            {copy.addAudio}
+            <input
+              accept="audio/*"
+              aria-label={copy.addAudio}
+              disabled={!audioSupported}
+              onChange={(event) => void selectAudio(event.target.files?.[0])}
+              onClick={() => setMediaNoticeVisible(true)}
+              type="file"
+            />
+          </label>
+          <button
+            aria-label={
+              isRequesting ? copy.requestingAssessment : copy.requestAssessment
+            }
+            className="composer-submit"
+            disabled={!barkDescription.trim() || isRequesting}
+            onClick={() => void requestAssessment()}
+            type="button"
+          >
+            {isRequesting ? "…" : "↑"}
+          </button>
+        </div>
+        {image || audio ? (
+          <p className="attachment-status">
+            {copy.evidenceAttached(
+              image ? copy.photoAttached : copy.audioAttached,
+            )}
+          </p>
         ) : null}
-      </fieldset>
-      <button
-        disabled={!barkDescription.trim() || isRequesting}
-        onClick={() => void requestAssessment()}
-        type="button"
-      >
-        {isRequesting ? copy.requestingAssessment : copy.requestAssessment}
-      </button>
+      </div>
+      <details className="observation-details">
+        <summary>{copy.addDetails}</summary>
+        <div className="form-grid">
+          <label className="form-field">
+            {copy.precedingEvent}
+            <input
+              onChange={(event) => setPrecedingEvent(event.target.value)}
+              type="text"
+              value={precedingEvent}
+            />
+          </label>
+          <label className="form-field">
+            {copy.distance}
+            <input
+              onChange={(event) => setDistanceToPerson(event.target.value)}
+              type="text"
+              value={distanceToPerson}
+            />
+          </label>
+          <label className="form-field form-field-wide">
+            {copy.context}
+            <select
+              onChange={(event) =>
+                setContext(
+                  event.target
+                    .value as (typeof contextOptions)[number]["value"],
+                )
+              }
+              value={context}
+            >
+              {contextOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {formCopy[locale].contextOptions[option.value]}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </details>
+      {!audioSupported ? (
+        <p className="composer-note">{copy.audioUnavailable}</p>
+      ) : null}
+      {mediaNoticeVisible ? (
+        <p className="composer-note">
+          {getErrorMessage("media_privacy_notice", locale)}
+        </p>
+      ) : null}
       {isRequesting ? (
         <output aria-live="polite">{copy.requestingAssessment}</output>
       ) : null}
@@ -354,7 +392,9 @@ const formCopy = {
   en: {
     addAudio: "Add audio (during response)",
     addPhoto: "Add photo",
+    addDetails: "Add context (optional)",
     audioUnavailable: "Audio input is unavailable in this environment.",
+    audioAttached: "Audio attached",
     barkDescription: "How did the bark sound?",
     context: "Context",
     contextOptions: {
@@ -369,12 +409,16 @@ const formCopy = {
     dogName: "Dog's name",
     editProfile: "Edit profile",
     observationTitle: "Observe the current response",
+    messagePlaceholder:
+      "Tell us what you noticed. You can add a photo here, too.",
     optionalEvidence: "Optional supporting information",
     precedingEvent: "What happened just before? (optional)",
     profileTitle: "Tell us about your dog",
     requestAssessment: "Request assessment",
     requestingAssessment: "Preparing assessment…",
     startAssessment: (name: string) => `Begin ${name}'s assessment`,
+    photoAttached: "Photo attached",
+    evidenceAttached: (evidence: string) => `${evidence}. Ready to send.`,
     temperamentNote: "Temperament note (optional)",
     updateProfile: "Update profile",
     updateProfileIntro: "Update this profile.",
@@ -382,7 +426,9 @@ const formCopy = {
   ja: {
     addAudio: "音声を追加（対応時）",
     addPhoto: "写真を追加",
+    addDetails: "状況を補足する（任意）",
     audioUnavailable: "この環境では音声入力を利用できません。",
+    audioAttached: "音声を添付しました",
     barkDescription: "鳴き方の特徴",
     context: "状況",
     contextOptions: {
@@ -397,12 +443,16 @@ const formCopy = {
     dogName: "愛犬の名前",
     editProfile: "プロフィールを編集",
     observationTitle: "いまの反応を観察する",
+    messagePlaceholder:
+      "気づいたことをそのまま書いてください。写真もここから添付できます。",
     optionalEvidence: "任意の補助情報",
     precedingEvent: "直前の出来事（任意）",
     profileTitle: "愛犬について教えてください",
     requestAssessment: "見立てを依頼",
     requestingAssessment: "見立てを準備しています…",
     startAssessment: (name: string) => `${name}の見立てを始めます`,
+    photoAttached: "写真を添付しました",
+    evidenceAttached: (evidence: string) => `${evidence}。このまま送れます。`,
     temperamentNote: "性格メモ（任意）",
     updateProfile: "プロフィールを更新",
     updateProfileIntro: "プロフィールを更新します。",
