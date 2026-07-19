@@ -46,6 +46,10 @@ describe("registerManageDogProfile", () => {
     expect(registerTool).toHaveBeenCalledWith(
       "manage_dog_profile",
       expect.objectContaining({
+        _meta: {
+          "openai/outputTemplate": "ui://pawlens/hello-widget-v4.html",
+          ui: { resourceUri: "ui://pawlens/hello-widget-v4.html" },
+        },
         annotations: {
           destructiveHint: true,
           idempotentHint: false,

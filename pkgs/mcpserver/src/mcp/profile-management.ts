@@ -7,6 +7,7 @@ import {
 } from "@pawlens/shared";
 
 import type { ConversationScope, ProfileRepository } from "../repositories.js";
+import { HELLO_WIDGET_RESOURCE_URI } from "./hello-widget.js";
 
 export function registerManageDogProfile(
   server: McpServer,
@@ -16,6 +17,10 @@ export function registerManageDogProfile(
   server.registerTool(
     "manage_dog_profile",
     {
+      _meta: {
+        "openai/outputTemplate": HELLO_WIDGET_RESOURCE_URI,
+        ui: { resourceUri: HELLO_WIDGET_RESOURCE_URI },
+      },
       annotations: {
         destructiveHint: true,
         idempotentHint: false,

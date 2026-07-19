@@ -626,6 +626,27 @@ textarea {
   margin-top: 0.85rem;
 }
 
+.profile-summary {
+  margin: 0 0 0.85rem !important;
+  border-left: 0.24rem solid #3d92a0 !important;
+  border-radius: 0 0.8rem 0.8rem 0 !important;
+  background: #e9f3f2 !important;
+  box-shadow: none !important;
+  padding: 0.65rem 0.85rem;
+}
+
+.profile-summary p {
+  margin: 0;
+  color: #527177;
+  font-size: 0.8rem;
+}
+
+.profile-summary h3 {
+  margin: 0.12rem 0;
+  color: #294b51;
+  font-size: 1.2rem;
+}
+
 .observation-details summary {
   color: #687184;
   cursor: pointer;

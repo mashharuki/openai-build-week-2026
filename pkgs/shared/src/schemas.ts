@@ -79,6 +79,11 @@ export const DogProfileSchema = z.object({
   updatedAt: z.string().datetime(),
 });
 
+export const ProfileDraftSchema = DogProfileSchema.pick({
+  name: true,
+  temperamentNote: true,
+});
+
 export const ObservationLogSchema = z.object({
   chosenAction: z.string().trim().min(1).max(500),
   conversationId: z.string().trim().min(1),
@@ -185,6 +190,9 @@ export const WidgetGreetingSchema = z.object({
     .min(1)
     .max(200)
     .describe("Short message confirming that the PawLens widget is ready."),
+  profileDraft: ProfileDraftSchema.optional().describe(
+    "Optional profile details supplied by the owner. The owner must explicitly save this draft before it becomes a stored profile.",
+  ),
 });
 
 export const SaveObservationInputSchema = z
@@ -212,11 +220,6 @@ export const GetDogHistoryInputSchema = z
 export const DeleteProfileInputSchema = z.object({
   confirmed: z.literal(true),
   dogId: z.string().trim().min(1),
-});
-
-const ProfileDraftSchema = DogProfileSchema.pick({
-  name: true,
-  temperamentNote: true,
 });
 
 export const ManageDogProfileInputSchema = z.discriminatedUnion("action", [

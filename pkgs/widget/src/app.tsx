@@ -5,6 +5,7 @@ import {
   type DogProfile,
   type HistoryComparison,
   type Locale,
+  ProfileManagementResultSchema,
 } from "@pawlens/shared";
 
 import { AssessmentCard } from "./assessment-card.js";
@@ -80,6 +81,9 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
   const [dogId, setDogId] = useState<string>();
   const [history, setHistory] = useState<HistoryComparison>();
   const [profile, setProfile] = useState<DogProfile>();
+  const [profileDraft, setProfileDraft] = useState<
+    Pick<DogProfile, "name" | "temperamentNote"> | undefined
+  >();
   const [state, setState] = useState<WidgetState>({ kind: "empty" });
 
   useEffect(() => {
@@ -98,6 +102,24 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
       const assessment = AssessmentResultSchema.safeParse(nextContent);
       if (assessment.success) {
         setState({ assessment: assessment.data, kind: "success" });
+        return;
+      }
+
+      const profileResult =
+        ProfileManagementResultSchema.safeParse(nextContent);
+      if (
+        profileResult.success &&
+        (profileResult.data.status === "created" ||
+          profileResult.data.status === "updated")
+      ) {
+        setProfile(profileResult.data.profile);
+        setDogId(profileResult.data.profile.id);
+        return;
+      }
+
+      const draft = getProfileDraft(nextContent);
+      if (draft) {
+        setProfileDraft(draft);
       }
     };
 
@@ -184,10 +206,38 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
         fileUploader={createAppsSdkFileUploader(window.openai ?? {})}
         filePicker={createAppsSdkFilePicker(window.openai ?? {})}
         locale={locale}
+        profile={profile}
+        profileDraft={profileDraft}
         onDogId={setDogId}
         onProfileChange={setProfile}
         onAssessment={(assessment) => setState({ assessment, kind: "success" })}
       />
     </main>
   );
+}
+
+function getProfileDraft(
+  content: unknown,
+): Pick<DogProfile, "name" | "temperamentNote"> | undefined {
+  if (!content || typeof content !== "object" || !("profileDraft" in content)) {
+    return undefined;
+  }
+
+  const draft = content.profileDraft;
+  if (!draft || typeof draft !== "object" || !("name" in draft)) {
+    return undefined;
+  }
+
+  const name = draft.name;
+  const temperamentNote =
+    "temperamentNote" in draft ? draft.temperamentNote : null;
+  if (
+    typeof name !== "string" ||
+    !name.trim() ||
+    (temperamentNote !== null && typeof temperamentNote !== "string")
+  ) {
+    return undefined;
+  }
+
+  return { name, temperamentNote };
 }

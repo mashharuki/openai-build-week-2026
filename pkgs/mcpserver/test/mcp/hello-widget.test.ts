@@ -82,13 +82,24 @@ describe("registerHelloWidget", () => {
       expect.any(Function),
     );
 
-    const renderHello = registerTool.mock.calls[0]?.[2] as () => Promise<{
+    const renderHello = registerTool.mock.calls[0]?.[2] as (
+      input?: unknown,
+    ) => Promise<{
       content: [];
-      structuredContent: { greeting: string };
+      structuredContent: { greeting: string; profileDraft?: unknown };
     }>;
     await expect(renderHello()).resolves.toEqual({
       content: [],
       structuredContent: { greeting: "こんにちは、PawLensです" },
+    });
+    await expect(
+      renderHello({ name: "ノア", temperamentNote: "人見知り" }),
+    ).resolves.toEqual({
+      content: [],
+      structuredContent: {
+        greeting: "こんにちは、PawLensです",
+        profileDraft: { name: "ノア", temperamentNote: "人見知り" },
+      },
     });
   });
 });

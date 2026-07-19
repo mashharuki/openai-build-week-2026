@@ -71,7 +71,7 @@ describe("HelloWidget", () => {
     );
   });
 
-  it("プロフィール管理ツールの結果を見立て結果として扱わない", () => {
+  it("プロフィール管理ツールの結果をプロフィールとして描画する", () => {
     render(<HelloWidget />);
 
     act(() => {
@@ -98,8 +98,45 @@ describe("HelloWidget", () => {
       );
     });
 
-    expect(screen.getByText("見立てを始める準備ができました。")).not.toBeNull();
+    expect(screen.getByLabelText("プロフィール")).not.toBeNull();
+    expect(screen.getByRole("heading", { name: "ノア" })).not.toBeNull();
+    expect(screen.getByText("やんちゃ")).not.toBeNull();
+    expect(screen.getByText("ノアの見立てを始めます")).not.toBeNull();
     expect(screen.queryByLabelText("システムエラー")).toBeNull();
+  });
+
+  it("プロフィール下書きを受け取ると、保存前の入力欄へ反映する", () => {
+    render(<HelloWidget />);
+
+    act(() => {
+      window.dispatchEvent(
+        new MessageEvent("message", {
+          data: {
+            jsonrpc: "2.0",
+            method: "ui/notifications/tool-result",
+            params: {
+              structuredContent: {
+                greeting: "こんにちは、PawLensです",
+                profileDraft: {
+                  name: "ノア",
+                  temperamentNote: "人見知り",
+                },
+              },
+            },
+          },
+          source: window.parent,
+        }),
+      );
+    });
+
+    expect(screen.getByLabelText("愛犬の名前")).toHaveProperty("value", "ノア");
+    expect(screen.getByLabelText("性格メモ（任意）")).toHaveProperty(
+      "value",
+      "人見知り",
+    );
+    expect(
+      screen.getByRole("button", { name: "プロフィールを登録" }),
+    ).toHaveProperty("disabled", false);
   });
 
   it("empty、loading、成功、システムエラー、緊急を区別して表示する", () => {

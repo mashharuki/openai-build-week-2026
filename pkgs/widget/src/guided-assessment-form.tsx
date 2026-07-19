@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   AssessmentResultSchema,
@@ -31,6 +31,8 @@ export interface GuidedAssessmentFormProps {
   ) => void;
   onDogId?: (dogId: string) => void;
   onProfileChange?: (profile: DogProfile) => void;
+  profile?: DogProfile;
+  profileDraft?: Pick<DogProfile, "name" | "temperamentNote">;
 }
 
 const contextOptions = [
@@ -50,6 +52,8 @@ export function GuidedAssessmentForm({
   onAssessment,
   onDogId,
   onProfileChange,
+  profile: renderedProfile,
+  profileDraft,
 }: GuidedAssessmentFormProps) {
   const copy = formCopy[locale];
   const [barkDescription, setBarkDescription] = useState("");
@@ -66,10 +70,28 @@ export function GuidedAssessmentForm({
   const [isRequesting, setIsRequesting] = useState(false);
   const [mediaNoticeVisible, setMediaNoticeVisible] = useState(false);
   const [precedingEvent, setPrecedingEvent] = useState("");
-  const [profile, setProfile] = useState<DogProfile | null>(null);
+  const [profile, setProfile] = useState<DogProfile | null>(
+    renderedProfile ?? null,
+  );
   const [profileName, setProfileName] = useState("");
   const [temperamentNote, setTemperamentNote] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!renderedProfile) return;
+
+    setProfile(renderedProfile);
+    setProfileName(renderedProfile.name);
+    setTemperamentNote(renderedProfile.temperamentNote ?? "");
+    setEditingProfile(false);
+  }, [renderedProfile]);
+
+  useEffect(() => {
+    if (!profileDraft || profile) return;
+
+    setProfileName(profileDraft.name);
+    setTemperamentNote(profileDraft.temperamentNote ?? "");
+  }, [profile, profileDraft]);
 
   const registerProfile = async () => {
     const name = profileName.trim();
@@ -287,6 +309,11 @@ export function GuidedAssessmentForm({
       className="intake-card conversation-panel observation-panel"
     >
       <p className="section-eyebrow">PAWLENS / OBSERVATION</p>
+      <section aria-label={copy.profileSummary} className="profile-summary">
+        <p>{copy.profileSummary}</p>
+        <h3>{profile.name}</h3>
+        {profile.temperamentNote ? <p>{profile.temperamentNote}</p> : null}
+      </section>
       <p className="section-intro assistant-prompt">
         {copy.startAssessment(profile.name)}
       </p>
@@ -449,6 +476,7 @@ const formCopy = {
     optionalEvidence: "Optional supporting information",
     precedingEvent: "What happened just before? (optional)",
     profileTitle: "Tell us about your dog",
+    profileSummary: "Profile",
     requestAssessment: "Request assessment",
     requestingAssessment: "Preparing assessment…",
     startAssessment: (name: string) => `Begin ${name}'s assessment`,
@@ -486,6 +514,7 @@ const formCopy = {
     optionalEvidence: "任意の補助情報",
     precedingEvent: "直前の出来事（任意）",
     profileTitle: "愛犬について教えてください",
+    profileSummary: "プロフィール",
     requestAssessment: "見立てを依頼",
     requestingAssessment: "見立てを準備しています…",
     startAssessment: (name: string) => `${name}の見立てを始めます`,
