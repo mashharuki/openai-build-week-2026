@@ -52,6 +52,24 @@ describe("AssessmentService", () => {
     const result = await service.assess(scope, input);
 
     expect(result).toMatchObject({
+      evidenceSummary: [
+        { kind: "owner_description", status: "included" },
+        { kind: "photo", status: "not_provided" },
+        { kind: "audio", status: "not_provided" },
+        { kind: "confirmed_observations", status: "included" },
+        { kind: "research", status: "included" },
+      ],
+      observationTimeline: [
+        { kind: "preceding_event", value: "チャイム" },
+        { kind: "reaction", value: "短く鋭い" },
+        { kind: "distance", value: "2m" },
+      ],
+      resources: [
+        expect.objectContaining({
+          href: "https://www.jvma.or.jp/",
+          kind: "professional",
+        }),
+      ],
       status: "success",
     });
     expect(AssessmentResultSchema.safeParse(result).success).toBe(true);
@@ -94,6 +112,12 @@ describe("AssessmentService", () => {
     const result = await service.assess(scope, withAttachments);
 
     expect(result).toMatchObject({ status: "success" });
+    expect(result.evidenceSummary).toEqual(
+      expect.arrayContaining([
+        { kind: "audio", status: "included" },
+        { kind: "photo", status: "included" },
+      ]),
+    );
     expect(AssessmentResultSchema.safeParse(result).success).toBe(true);
     expect(model.generate).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -162,7 +186,59 @@ describe("AssessmentService", () => {
     });
 
     expect(result).toMatchObject({ confidence: "low", status: "partial" });
+    expect(result.evidenceSummary).toEqual(
+      expect.arrayContaining([
+        { kind: "audio", status: "unavailable" },
+        { kind: "photo", status: "unavailable" },
+      ]),
+    );
     expect(result.limitations).toContain("音声を録り直す");
+  });
+
+  it("英語の通常・緊急結果には、監査済みのAVSAB導線だけを返す", async () => {
+    const model = {
+      generate: vi.fn(async () => ({ candidate, kind: "valid" as const })),
+    };
+    const service = createAssessmentService({
+      model,
+      observations: { list: vi.fn(async () => []) },
+    });
+
+    const normal = await service.assess(scope, { ...input, locale: "en" });
+    expect(normal.resources).toEqual([
+      expect.objectContaining({
+        href: "https://avsab.org/resources/position-statements/",
+        kind: "education",
+      }),
+      expect.objectContaining({
+        href: "https://avsab.org/directory/",
+        kind: "professional",
+      }),
+    ]);
+
+    const urgentService = createAssessmentService({
+      model: {
+        generate: vi.fn(async () => ({
+          candidate: {
+            ...candidate,
+            limitations: "The dog is trembling excessively.",
+          },
+          kind: "valid" as const,
+        })),
+      },
+      observations: { list: vi.fn(async () => []) },
+    });
+    const urgent = await urgentService.assess(scope, {
+      ...input,
+      locale: "en",
+    });
+    expect(urgent.status).toBe("urgent");
+    expect(urgent.resources).toEqual([
+      expect.objectContaining({
+        href: "https://avsab.org/directory/",
+        kind: "professional",
+      }),
+    ]);
   });
 
   it("モデル例外時も一度だけ再試行し、行動可能な安全エラーを返す", async () => {

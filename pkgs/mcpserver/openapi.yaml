@@ -35,6 +35,38 @@
             "minItems": 1,
             "type": "array"
           },
+          "evidenceSummary": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "confirmed_observations",
+                    "owner_description",
+                    "photo",
+                    "research",
+                    "audio"
+                  ],
+                  "type": "string"
+                },
+                "status": {
+                  "enum": [
+                    "included",
+                    "not_provided",
+                    "unavailable"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "status"
+              ],
+              "type": "object"
+            },
+            "maxItems": 5,
+            "type": "array"
+          },
           "limitations": {
             "maxLength": 1000,
             "minLength": 1,
@@ -47,6 +79,33 @@
             },
             "maxItems": 10,
             "minItems": 1,
+            "type": "array"
+          },
+          "observationTimeline": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "kind": {
+                  "enum": [
+                    "preceding_event",
+                    "reaction",
+                    "distance"
+                  ],
+                  "type": "string"
+                },
+                "value": {
+                  "maxLength": 2000,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "kind",
+                "value"
+              ],
+              "type": "object"
+            },
+            "maxItems": 3,
             "type": "array"
           },
           "primaryHypothesis": {
@@ -91,6 +150,43 @@
               "type": "object"
             },
             "maxItems": 3,
+            "type": "array"
+          },
+          "resources": {
+            "items": {
+              "additionalProperties": true,
+              "properties": {
+                "description": {
+                  "maxLength": 300,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "href": {
+                  "format": "uri",
+                  "type": "string"
+                },
+                "kind": {
+                  "enum": [
+                    "education",
+                    "professional"
+                  ],
+                  "type": "string"
+                },
+                "label": {
+                  "maxLength": 120,
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "href",
+                "kind",
+                "label"
+              ],
+              "type": "object"
+            },
+            "maxItems": 2,
             "type": "array"
           },
           "status": {

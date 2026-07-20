@@ -13,6 +13,10 @@ declare global {
       getFileDownloadUrl?: (input: { fileId: string }) => Promise<
         { downloadUrl: string } | string
       >;
+      openExternal?: (input: {
+        href: string;
+        redirectUrl?: boolean;
+      }) => Promise<void> | void;
       locale?: string;
       toolOutput?: unknown;
       sendFollowUpMessage?: (input: {

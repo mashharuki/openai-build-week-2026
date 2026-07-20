@@ -22,6 +22,26 @@ const assessment: AssessmentResult = {
   ],
   status: "success",
   suggestedAction: "玄関から距離を取り、静かな場所へ誘導します。",
+  evidenceSummary: [
+    { kind: "owner_description", status: "included" },
+    { kind: "photo", status: "not_provided" },
+    { kind: "audio", status: "unavailable" },
+    { kind: "confirmed_observations", status: "included" },
+    { kind: "research", status: "included" },
+  ],
+  observationTimeline: [
+    { kind: "preceding_event", value: "チャイム" },
+    { kind: "reaction", value: "短く鋭く吠えた" },
+    { kind: "distance", value: "2m" },
+  ],
+  resources: [
+    {
+      description: "症状が続く場合は獣医師へ相談してください。",
+      href: "https://www.jvma.or.jp/",
+      kind: "professional",
+      label: "日本獣医師会を開く",
+    },
+  ],
 };
 
 const history: HistoryComparison = {
@@ -43,7 +63,12 @@ describe("AssessmentCard", () => {
     expect(screen.getByText("警戒の可能性")).not.toBeNull();
     expect(screen.getByText("確信度: 低")).not.toBeNull();
     expect(screen.getByText("研究知見")).not.toBeNull();
-    expect(screen.getByText("飼い主が確認した観察")).not.toBeNull();
+    expect(screen.getAllByText("飼い主が確認した観察")).toHaveLength(2);
+    expect(screen.getByText("今回の根拠")).not.toBeNull();
+    expect(screen.getByText("飼い主の記述")).not.toBeNull();
+    expect(screen.getByText("利用不可")).not.toBeNull();
+    expect(screen.getByText("今回の観察メモ")).not.toBeNull();
+    expect(screen.getByText("チャイム")).not.toBeNull();
     expect(screen.getByText(assessment.limitations)).not.toBeNull();
     expect(
       screen.getByText("耳の向きは玄関へ固定されていますか？"),
@@ -51,7 +76,7 @@ describe("AssessmentCard", () => {
     expect(screen.getByText("未確認の観察ポイント")).not.toBeNull();
     expect(screen.getByText(assessment.suggestedAction)).not.toBeNull();
     expect(
-      screen.getByRole("link", { name: "獣医師・行動専門家に相談する" }),
+      screen.getByRole("link", { name: /日本獣医師会を開く/ }),
     ).not.toBeNull();
   });
 
@@ -123,7 +148,25 @@ describe("AssessmentCard", () => {
     expect(screen.getByText("Limits of this assessment")).not.toBeNull();
     expect(screen.getByText("What to check next")).not.toBeNull();
     expect(screen.getByText("A calm next step")).not.toBeNull();
+    expect(screen.getByText("What informed this assessment")).not.toBeNull();
+    expect(
+      screen.getByText("Observation notes from this conversation"),
+    ).not.toBeNull();
+    expect(screen.getByText("More support")).not.toBeNull();
     expect(screen.getByRole("button", { name: "Show details" })).not.toBeNull();
+  });
+
+  it("ChatGPTホストが対応する場合は、公式リソースを安全な外部表示APIで開く", () => {
+    const openExternal = vi.fn();
+    Object.assign(window, { openai: { openExternal } });
+    render(<AssessmentCard assessment={assessment} />);
+
+    fireEvent.click(screen.getByRole("link", { name: /日本獣医師会を開く/ }));
+
+    expect(openExternal).toHaveBeenCalledWith({
+      href: "https://www.jvma.or.jp/",
+    });
+    Reflect.deleteProperty(window, "openai");
   });
 
   it("詳細操作はキーボードでフォーカスでき、色以外の状態ラベルを持つ", () => {
@@ -151,7 +194,7 @@ describe("AssessmentCard", () => {
 
     expect(screen.queryByRole("button")).toBeNull();
     expect(
-      screen.queryByRole("link", { name: "獣医師・行動専門家に相談する" }),
-    ).toBeNull();
+      screen.getByRole("link", { name: /日本獣医師会を開く/ }),
+    ).not.toBeNull();
   });
 });

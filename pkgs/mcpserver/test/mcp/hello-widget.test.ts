@@ -34,6 +34,7 @@ describe("registerHelloWidget", () => {
     const loadResource = registerResource.mock.calls[0]?.[3] as () => Promise<{
       contents: Array<{
         _meta: {
+          "openai/widgetCSP": { redirect_domains: string[] };
           "openai/widgetDescription": string;
           ui: {
             csp: { connectDomains: string[]; resourceDomains: string[] };
@@ -51,6 +52,9 @@ describe("registerHelloWidget", () => {
         {
           mimeType: "text/html;profile=mcp-app",
           _meta: {
+            "openai/widgetCSP": {
+              redirect_domains: ["https://avsab.org", "https://www.jvma.or.jp"],
+            },
             "openai/widgetDescription":
               "A read-only PawLens summary panel. The owner speaks or types in ChatGPT; do not ask them to operate controls inside the widget. Keep chat narration brief when the panel already shows the result.",
             ui: {

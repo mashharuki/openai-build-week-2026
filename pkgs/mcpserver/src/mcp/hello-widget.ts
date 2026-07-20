@@ -5,7 +5,7 @@ import { ProfileDraftSchema, WidgetGreetingSchema } from "@pawlens/shared";
  * The URI is a ChatGPT cache key. Bump it whenever the template contract or
  * its security metadata changes.
  */
-export const HELLO_WIDGET_RESOURCE_URI = "ui://pawlens/hello-widget-v7.html";
+export const HELLO_WIDGET_RESOURCE_URI = "ui://pawlens/hello-widget-v8.html";
 
 const WIDGET_ASSET_ORIGIN =
   "https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev";
@@ -13,6 +13,9 @@ const WIDGET_ASSET_ORIGIN =
 const WIDGET_RESOURCE_META = {
   "openai/widgetDescription":
     "A read-only PawLens summary panel. The owner speaks or types in ChatGPT; do not ask them to operate controls inside the widget. Keep chat narration brief when the panel already shows the result.",
+  "openai/widgetCSP": {
+    redirect_domains: ["https://avsab.org", "https://www.jvma.or.jp"],
+  },
   ui: {
     // This bundle has no browser fetches or CDN assets. Keep CSP allowlists
     // explicit and empty rather than granting a broad default.

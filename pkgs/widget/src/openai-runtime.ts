@@ -20,6 +20,10 @@ export interface OpenAiToolHost {
   getFileDownloadUrl?: (input: { fileId: string }) => Promise<
     { downloadUrl: string } | string
   >;
+  openExternal?: (input: {
+    href: string;
+    redirectUrl?: boolean;
+  }) => Promise<void> | void;
   selectFiles?: () => Promise<AppsSdkLibraryFile[]>;
   sendFollowUpMessage?: (input: {
     prompt: string;
@@ -27,6 +31,15 @@ export interface OpenAiToolHost {
   }) => Promise<void> | void;
   uploadFile?: (file: File) => Promise<{ fileId: string } | string>;
   toolOutput?: unknown;
+}
+
+export function openExternalResource(href: string): boolean {
+  if (!window.openai?.openExternal) return false;
+
+  void Promise.resolve(window.openai.openExternal({ href })).catch(() => {
+    // The anchor's fallback remains available when the host rejects a link.
+  });
+  return true;
 }
 
 export interface AppsSdkLibraryFile {

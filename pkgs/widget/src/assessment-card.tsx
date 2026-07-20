@@ -4,7 +4,10 @@ import type {
   AssessmentResult,
   HistoryComparison,
   Locale,
+  SupportResource,
 } from "@pawlens/shared";
+
+import { openExternalResource } from "./openai-runtime.js";
 
 export interface AssessmentCardProps {
   actions?: ReactNode;
@@ -61,7 +64,7 @@ export function AssessmentCard({
         <h2>{copy.urgentGuidance}</h2>
         <p>{assessment.suggestedAction}</p>
         <p>{copy.urgentSupport}</p>
-        <ProfessionalSupportLink locale={locale} />
+        <SupportResources locale={locale} resources={assessment.resources} />
       </section>
     );
   }
@@ -101,6 +104,11 @@ export function AssessmentCard({
       <p className="assessment-confidence">
         {copy.confidence}: {confidenceLabels[assessment.confidence][locale]}
       </p>
+      <EvidenceMap locale={locale} summary={assessment.evidenceSummary} />
+      <ObservationTimeline
+        locale={locale}
+        timeline={assessment.observationTimeline}
+      />
       <section aria-label={copy.evidenceSources} className="assessment-detail">
         <h3>{copy.evidenceSources}</h3>
         <ul>
@@ -126,6 +134,7 @@ export function AssessmentCard({
         <h3>{copy.calmAction}</h3>
         <p>{assessment.suggestedAction}</p>
       </section>
+      <SupportResources locale={locale} resources={assessment.resources} />
       {!readOnly ? (
         <section
           aria-label={copy.observationConfirmation}
@@ -136,7 +145,6 @@ export function AssessmentCard({
           {actions}
         </section>
       ) : null}
-      {!readOnly ? <ProfessionalSupportLink locale={locale} /> : null}
       {!readOnly && onFollowUp ? (
         <button
           className="conversation-follow-up"
@@ -189,11 +197,102 @@ export function AssessmentCard({
   );
 }
 
-function ProfessionalSupportLink({ locale }: { locale: Locale }) {
+function EvidenceMap({
+  locale,
+  summary,
+}: {
+  locale: Locale;
+  summary: AssessmentResult["evidenceSummary"];
+}) {
+  if (!summary?.length) return null;
+
+  const copy = cardCopy[locale];
   return (
-    <a href="https://www.jvma.or.jp/">{cardCopy[locale].professionalSupport}</a>
+    <section aria-label={copy.evidenceMapTitle} className="evidence-map">
+      <h3>{copy.evidenceMapTitle}</h3>
+      <p>{copy.evidenceMapDescription}</p>
+      <ul>
+        {summary.map((item) => (
+          <li data-status={item.status} key={item.kind}>
+            <span aria-hidden="true">{evidenceIcons[item.status]}</span>
+            <span>{copy.evidenceKinds[item.kind]}</span>
+            <strong>{copy.evidenceStatus[item.status]}</strong>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
+
+function ObservationTimeline({
+  locale,
+  timeline,
+}: {
+  locale: Locale;
+  timeline: AssessmentResult["observationTimeline"];
+}) {
+  if (!timeline?.length) return null;
+
+  const copy = cardCopy[locale];
+  return (
+    <section aria-label={copy.timelineTitle} className="observation-timeline">
+      <h3>{copy.timelineTitle}</h3>
+      <p>{copy.timelineDescription}</p>
+      <ol>
+        {timeline.map((item) => (
+          <li key={item.kind}>
+            <span>{copy.timelineKinds[item.kind]}</span>
+            <p>{item.value}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+function SupportResources({
+  locale,
+  resources,
+}: {
+  locale: Locale;
+  resources: SupportResource[] | undefined;
+}) {
+  if (!resources?.length) return null;
+
+  const copy = cardCopy[locale];
+  return (
+    <section
+      aria-label={copy.supportResourcesTitle}
+      className="support-resources"
+    >
+      <h3>{copy.supportResourcesTitle}</h3>
+      <p>{copy.supportResourcesDescription}</p>
+      <ul>
+        {resources.map((resource) => (
+          <li key={resource.href}>
+            <a
+              href={resource.href}
+              onClick={(event) => {
+                if (openExternalResource(resource.href)) event.preventDefault();
+              }}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <span>{resource.label}</span>
+              <small>{resource.description}</small>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const evidenceIcons = {
+  included: "●",
+  not_provided: "○",
+  unavailable: "!",
+} as const;
 
 const confidenceLabels = {
   high: { en: "high", ja: "高" },
@@ -214,6 +313,21 @@ const cardCopy = {
     displayError:
       "We could not safely display this assessment. Review the input and try again.",
     educationalNotice: "This is observation support, not a diagnosis.",
+    evidenceKinds: {
+      audio: "Audio",
+      confirmed_observations: "Owner-confirmed observations",
+      owner_description: "Owner's description",
+      photo: "Photo",
+      research: "Curated research context",
+    },
+    evidenceMapDescription:
+      "This shows which inputs were available for this assessment. It does not show what was diagnosed.",
+    evidenceMapTitle: "What informed this assessment",
+    evidenceStatus: {
+      included: "Included",
+      not_provided: "Not provided",
+      unavailable: "Unavailable",
+    },
     evidenceSources: "Evidence sources",
     fallbackQuestion:
       "Can you check the ear direction and body stiffness next?",
@@ -237,6 +351,17 @@ const cardCopy = {
     secondaryPossibilities: "Secondary possibilities",
     showDetails: "Show details",
     systemError: "System error",
+    supportResourcesDescription:
+      "These are external resources, not a diagnosis or a PawLens recommendation.",
+    supportResourcesTitle: "More support",
+    timelineDescription:
+      "These are facts supplied in this conversation, not AI inferences.",
+    timelineKinds: {
+      distance: "Distance",
+      preceding_event: "What happened before",
+      reaction: "Observed reaction",
+    },
+    timelineTitle: "Observation notes from this conversation",
     urgentGuidance: "Urgent safety guidance",
     urgentSupport:
       "Secure safety first and contact a professional when needed.",
@@ -254,6 +379,21 @@ const cardCopy = {
     displayError:
       "見立てを安全に表示できません。入力を見直して、もう一度お試しください。",
     educationalNotice: "見立ては診断ではなく、次の観察を支えるためのものです。",
+    evidenceKinds: {
+      audio: "音声",
+      confirmed_observations: "飼い主が確認した観察",
+      owner_description: "飼い主の記述",
+      photo: "写真",
+      research: "整理済みの研究知見",
+    },
+    evidenceMapDescription:
+      "今回の見立てで利用できた入力を示します。診断や状態の確定を示すものではありません。",
+    evidenceMapTitle: "今回の根拠",
+    evidenceStatus: {
+      included: "利用できた",
+      not_provided: "未提供",
+      unavailable: "利用不可",
+    },
     evidenceSources: "根拠の種類",
     fallbackQuestion: "次に、耳の向きや体の硬さを確認できますか？",
     hideDetails: "詳細を閉じる",
@@ -274,6 +414,17 @@ const cardCopy = {
     secondaryPossibilities: "次点の見立て",
     showDetails: "詳細を表示",
     systemError: "システムエラー",
+    supportResourcesDescription:
+      "外部の補助資料です。PawLens による診断や個別の推薦ではありません。",
+    supportResourcesTitle: "次の支援先",
+    timelineDescription:
+      "この会話で飼い主が伝えた事実です。AI の推測ではありません。",
+    timelineKinds: {
+      distance: "距離",
+      preceding_event: "直前の出来事",
+      reaction: "観察した反応",
+    },
+    timelineTitle: "今回の観察メモ",
     urgentGuidance: "緊急の安全案内",
     urgentSupport: "安全を確保し、必要に応じて専門家へ相談してください。",
   },

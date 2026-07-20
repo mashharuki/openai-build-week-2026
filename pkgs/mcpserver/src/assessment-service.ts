@@ -15,6 +15,7 @@ import type { ObservationLogReader } from "./history-diff.js";
 import type { ModelAdapter, ModelCandidateResult } from "./model.js";
 import type { ConversationScope } from "./repositories.js";
 import { getResearchContext } from "./research-context.js";
+import { addPresentationData } from "./presentation-data.js";
 
 export type AssessmentResultKind = AssessmentResult["status"];
 export type AssessmentSchemaFailureKind =
@@ -138,10 +139,22 @@ export function createAssessmentService(
           assessment.status,
           schemaFailureKind,
         );
-        return assessment;
+        return addPresentationData({
+          assessment,
+          evidence,
+          input: signal,
+          observations,
+          research: generationInput.research,
+        });
       }
 
-      const assessment = generationFailure(signal.locale);
+      const assessment = addPresentationData({
+        assessment: generationFailure(signal.locale),
+        evidence,
+        input: signal,
+        observations,
+        research: generationInput.research,
+      });
       recordTelemetry(
         dependencies,
         correlationId,

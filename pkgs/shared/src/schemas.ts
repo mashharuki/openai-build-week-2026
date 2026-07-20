@@ -169,16 +169,48 @@ export const HypothesisSchema = z.object({
   rationale: z.string().trim().min(1).max(1_000),
 });
 
+export const EvidenceAvailabilitySchema = z.enum([
+  "included",
+  "not_provided",
+  "unavailable",
+]);
+
+export const EvidenceSummaryItemSchema = z.object({
+  kind: z.enum([
+    "confirmed_observations",
+    "owner_description",
+    "photo",
+    "research",
+    "audio",
+  ]),
+  status: EvidenceAvailabilitySchema,
+});
+
+export const ObservationTimelineItemSchema = z.object({
+  kind: z.enum(["preceding_event", "reaction", "distance"]),
+  value: z.string().trim().min(1).max(2_000),
+});
+
+export const SupportResourceSchema = z.object({
+  description: z.string().trim().min(1).max(300),
+  href: z.string().url(),
+  kind: z.enum(["education", "professional"]),
+  label: z.string().trim().min(1).max(120),
+});
+
 export const AssessmentResultSchema = z.object({
   additionalQuestion: z.string().trim().min(1).max(500).nullable(),
   confidence: ConfidenceSchema,
   evidenceSources: z
     .array(z.enum(["research", "confirmed_observation"]))
     .min(1),
+  evidenceSummary: z.array(EvidenceSummaryItemSchema).max(5).optional(),
   limitations: z.string().trim().min(1).max(1_000),
   observationPoints: z.array(z.string().trim().min(1)).min(1).max(10),
+  observationTimeline: z.array(ObservationTimelineItemSchema).max(3).optional(),
   primaryHypothesis: HypothesisSchema,
   secondaryHypotheses: z.array(HypothesisSchema).max(3),
+  resources: z.array(SupportResourceSchema).max(2).optional(),
   status: z.enum(["success", "partial", "urgent", "error"]),
   suggestedAction: z.string().trim().min(1).max(500),
 });
