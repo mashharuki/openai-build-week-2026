@@ -153,74 +153,87 @@ ChatGPT は公開 HTTPS の MCP エンドポイントを必要とします。Clo
 
 開発者モードや Apps SDK の UI は更新されることがあります。画面名が異なる場合は、公式の [MCP server guide](https://developers.openai.com/apps-sdk/build/mcp-server) と [Apps SDK reference](https://developers.openai.com/apps-sdk/reference) を優先してください。
 
-## ChatGPT デモ台本
+## 審査員向けデモ：そのまま貼れる最高品質のプロンプト
 
-PawLens のデモでは、自然な相談から始め、写真の再利用、見立て、会話の継続、確認済み観察の記録までを一続きで見せます。見立ては診断ではなく、飼い主が安全に次の観察を行うための整理です。
+PawLens を最もよく伝えるのは「犬語の翻訳」ではなく、飼い主の曖昧な不安を、根拠・不確実性・次の安全な観察へ変える一続きの体験です。新しい英語の ChatGPT 会話で、以下を**順番どおり**実行してください。審査員が同じ手順で再現でき、プロフィール、会話、任意の画像、GPT-5.6 による構造化、慎重な行動提案までを一度に体験できます。
 
-### メインフロー
+> デモでは、実際に返ったカードだけを見せてください。画面録画用に作った結果や、未検証の音声経路を「ライブ」として見せないでください。写真は任意です。添付できなくても、記述だけで安全なフローを完走できます。
 
-1. 新しい ChatGPT の会話で、次の内容を送ります。
+### デモ前の準備（30秒）
 
-   ```text
-   PawLensを開いてください。
-   ココという4歳の柴犬の反応を、診断ではなく落ち着いて観察・整理したいです。
-   ココは人見知りで、チャイムの音に少し敏感です。
-   ```
+1. 公開 HTTPS の `/mcp` URL を ChatGPT の開発者モードで PawLens として接続する。
+2. **新しい会話**を開く。PawLens の履歴比較は、安定した同一会話だけを対象にします。
+3. ChatGPT の表示言語を英語にする。PawLens のウィジェットと見立てを英語で表示できることを確認する。
+4. 可能なら、玄関方向を見ている犬の姿勢が分かる、自分で利用許可を持つ写真を 1 枚用意する。写真は診断用ではなく、姿勢と距離の追加情報です。
 
-2. 続けて、ChatGPTの入力欄またはマイクから次のように話しかけます。プロフィール登録や見立ての依頼は、会話から行います。
+### 1. はじめの一言：対象と約束を明確にする
 
-   ```text
-   玄関のチャイムが鳴ると、玄関の方を向いて低い声で2回吠えました。
-   少し後ずさりして、耳は前に向いていました。
-   ```
-
-3. 姿勢や玄関との距離が分かる写真があれば、ChatGPTの添付操作で会話に追加します。ウィジェットで写真を選び直す必要はありません。
-
-4. ウィジェットには可能性・限界・次に観察すること・安全な次の一手だけが要約されます。詳細や追加の相談は、同じChatGPT会話で続けます。
-
-   ```text
-   耳の向きと体の硬さを確認しました。
-   耳は玄関に向いたままで、体は少し硬く見えました。
-   今夜はどう過ごすと落ち着きやすいですか？
-   ```
-
-5. 記録したいときは、「今確認できた事実を記録して」とChatGPTに伝えます。AIの推測を確認済み事実として保存しません。
-
-### 30秒版
+最初に以下を送ります。ここで PawLens が開き、相談が「診断」ではなく「観察支援」であることを最初に伝えます。
 
 ```text
-PawLensを開いてください。
-ココという柴犬が、チャイムのあとに低い声で2回吠え、少し後ずさりしました。
-写真も見ながら、次に観察すべきことを整理してください。
+Open PawLens. I want to calmly understand my dog's reaction, not get a diagnosis.
+
+Please create a profile for Mugi, a 4-year-old Shiba Inu. Mugi is cautious around unfamiliar visitors and becomes alert when the doorbell rings.
 ```
 
-### 別シーンのプロンプト
+画面では PawLens のライブノートと、Mugi のプロフィールが表示されることを見せます。ここで長い説明はせず、「犬の状態を断定しない」という約束が UI に現れるまで待ちます。
 
-**来客への反応**
+### 2. 本番の瞬間：曖昧な出来事を、検証可能な観察へ変える
+
+次に以下を送ります。用意した写真がある場合は、**このメッセージと同時に ChatGPT に添付**します。写真がない場合も、文面は変更しません。
 
 ```text
-PawLensを開いてください。
-家に友人が来たとき、犬が玄関から離れずに高い声で連続して吠えました。
-怖がっているのか、興奮しているのかを断定せず、見分けるための観察ポイントを教えてください。
+The doorbell rang just now. Mugi faced the front door, barked twice in a low voice, then stepped back about one meter. His ears stayed pointed toward the door and his body looked a little stiff.
+
+Use PawLens to organize what this could mean. Do not label Mugi as aggressive or diagnose a condition. Tell me what I can safely observe next and give me one low-stimulation action I can take tonight.
 ```
 
-**散歩中の反応**
+このカードで、次の 5 点が一画面で読めることを見せます。
+
+- primary possibility（結論ではなく可能性）
+- confidence と根拠の出所
+- 今回の情報だけでは分からない限界
+- 飼い主が次に確認できる具体的なサイン
+- その夜に取れる、低刺激で安全な一手
+
+これが PawLens の「すごさ」を示す中心です。モデルがもっともらしい感情名を返すことではなく、飼い主が自分で確かめられる次の判断材料を返します。
+
+### 3. 追質問：飼い主の確認で、次の判断を具体化する
+
+カードを読んだあと、飼い主が実際に確認できたことだけを続けます。
 
 ```text
-PawLensを開いてください。
-散歩中に他の犬を見つけると、リードを引いて体を固くし、短く吠えます。
-距離はだいたい3メートルです。次に安全に確認できることを整理してください。
+I checked again: Mugi kept looking toward the door, his body still seemed stiff, and he chose to stand farther away when I opened the door to a quiet room.
+
+What should I watch for over the next 10 minutes to tell whether he is settling? Please keep the answer practical and do not turn these observations into a medical or behavioral diagnosis.
 ```
 
-**低ストレスな日常観察**
+ここで「推測」と「飼い主が確認した事実」が別物として扱われ、会話の中で安全な次の行動へ進むことを見せます。
+
+### 4. 60秒版：接続確認・短い実演用
+
+時間がない場合は、新しい会話で次の 1 通だけを送ります。審査員向けの短い試用手順としても使えます。
 
 ```text
-PawLensを開いてください。
-今日は普段より静かで、窓の外を長く見ています。
-急いで結論を出さず、家で確認できる観察ポイントを教えてください。
+Open PawLens. My 4-year-old Shiba Inu, Mugi, barked twice in a low voice after the doorbell, stepped back about one meter, and looked toward the front door with a stiff body.
+
+Without diagnosing or calling him aggressive, organize the possible meaning, what I should observe next, the limits of this information, and one calm action I can take tonight.
 ```
 
-「攻撃的ですか」「病気ですか」のように結論を急がせる表現は避けます。PawLens の価値である、事実の整理と次の安全な観察が伝わりにくくなるためです。
+### 録画の見せ方（3分以内）
+
+| 時間 | 見せること | 審査員に残す印象 |
+| --- | --- | --- |
+| 0:00–0:15 | 「犬語翻訳ではない。迷った飼い主が安全な次の観察を選べるようにする」と一文で言う | 課題と差別化が即座に分かる |
+| 0:15–0:35 | プロンプト 1 を送信し、PawLens と Mugi のプロフィールを表示する | ChatGPT App として自然に始まる |
+| 0:35–1:35 | 写真（任意）付きでプロンプト 2 を送る。実際に返ったカードを止めずに読む | マルチモーダル入力から、構造化された安全な出力へ至る |
+| 1:35–2:05 | 「可能性・限界・観察点・安全な一手」を指し示す | 不確実性を隠さない設計が見える |
+| 2:05–2:30 | プロンプト 3 を送る | 一回きりの回答ではなく、飼い主の確認で次の判断が良くなる |
+| 2:30–3:00 | GPT-5.6 が構造化した観察ガイダンスを生成し、Codex で MCP・ウィジェット・検証を実装したことを説明する。実際のテスト URL で締める | 技術実装、デザイン、影響を同時に裏付ける |
+
+### 使わない表現
+
+「Is my dog aggressive?」「What emotion is my dog feeling?」「Is my dog sick?」のように、断定や診断を求める聞き方は避けます。PawLens は個体の内面を言い当てるサービスではありません。状況、姿勢、飼い主が確認できる事実を整理し、落ち着いて次の一手を選べるようにするアプリです。
 
 ## 切り分け
 
