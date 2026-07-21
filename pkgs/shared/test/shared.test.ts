@@ -46,6 +46,21 @@ describe("共有スキーマ", () => {
     ).toBe(false);
   });
 
+  it("旧ウィジェットの距離フィールドを、ハンドラで変換できるよう保持する", () => {
+    expect(
+      OpenAiSignalInputSchema.safeParse({
+        audio: null,
+        barkDescription: "短く吠えました。",
+        context: "visitor",
+        distanceToPerson: "2m",
+        dogId: "dog-coco",
+        image: null,
+        locale: "ja",
+        precedingEvent: null,
+      }).success,
+    ).toBe(true);
+  });
+
   it("記述優先の見立て入力を検証し、不正な状況と長すぎる音声を拒否する", () => {
     const baseInput = {
       dogId: "dog-1",

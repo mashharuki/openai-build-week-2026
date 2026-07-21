@@ -68,8 +68,9 @@ function withLegacyDistanceInMeters(input: unknown): unknown {
 
   const candidate = input as Record<string, unknown>;
   if (
-    "distance_to_trigger_meters" in candidate ||
-    !("distanceToPerson" in candidate)
+    !("distanceToPerson" in candidate) ||
+    ("distance_to_trigger_meters" in candidate &&
+      candidate.distance_to_trigger_meters !== null)
   ) {
     return input;
   }

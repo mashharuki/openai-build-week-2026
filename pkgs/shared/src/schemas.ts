@@ -126,6 +126,7 @@ export const OpenAiSignalToolInputSchema = z
       .min(0)
       .max(1_000)
       .nullable()
+      .optional()
       .describe(
         "Straight-line distance in meters from the dog to the immediate trigger (for example, a person, another dog, a door, or a sound source). Use a number such as 2.5; use null when unknown. Do not pass a text value such as '2m'.",
       ),
@@ -149,7 +150,10 @@ export const OpenAiSignalToolInputSchema = z
         "What happened immediately before the reaction; null if unknown.",
       ),
   })
-  .strict();
+  // A previous widget release sends distanceToPerson. MCP validates this
+  // schema before the tool handler can normalize that legacy field, so retain
+  // unrecognised fields until the handler performs the compatibility mapping.
+  .passthrough();
 
 export const OpenAiSignalInputSchema = OpenAiSignalToolInputSchema.transform(
   (input) =>
@@ -157,7 +161,7 @@ export const OpenAiSignalInputSchema = OpenAiSignalToolInputSchema.transform(
       ...input,
       audio: input.audio ? OpenAiFileReferenceSchema.parse(input.audio) : null,
       distanceToPerson:
-        input.distance_to_trigger_meters === null
+        input.distance_to_trigger_meters == null
           ? null
           : `${input.distance_to_trigger_meters} m`,
       image: input.image ? OpenAiFileReferenceSchema.parse(input.image) : null,

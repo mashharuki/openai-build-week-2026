@@ -79,6 +79,16 @@ flowchart LR
 
 The Worker owns MCP routing and session recovery. The Durable Object scopes an MCP session; Cloudflare KV stores profiles and owner-confirmed observations. The assessment path sends only the active request's optional media reference to the OpenAI Responses API, validates the strict structured response, and applies product guardrails before the widget receives it.
 
+## Technical strengths
+
+PawLens does not display model prose as-is. It checks the conditions needed for observation support in the application layer before returning a result, so the product can favor the next thing a guardian can verify over a plausible-sounding explanation.
+
+- **The result passes through several checks.** The Responses API uses a strict JSON Schema, then the Worker applies Zod validation and deterministic guardrails. Results containing diagnostic language, first-person dog speech, or unsuitable urgent-case advice are rejected. There is at most one repair attempt; after that, the product returns a safe error rather than an unverified answer.
+- **Missing context is not filled in by guesswork.** If the event immediately before the bark or the distance to a person is absent, the contract returns `partial` and asks for the most useful missing detail. Contexts outside visitor and doorbell scenarios are not given the same confidence. If optional image or audio evidence is unavailable, the limitation is made explicit and the flow falls back to the written observation.
+- **Hypotheses and records stay separate.** Only observations confirmed by the guardian can be stored in KV. Model hypotheses are never saved as facts, and assessments and history comparisons use records only when the dog ID and conversation scope match. When the conversation cannot be verified as stable, history returns `unavailable` instead of inferring a comparison.
+- **Session continuity is handled in infrastructure.** A Streamable HTTP MCP session is contained in a Durable Object; after hibernation, the runtime is restored to process resumed requests. This avoids losing tool access in the middle of a longer conversation merely because the session instance was suspended.
+- **Data is limited to the active request.** Model calls use `store: false` and receive only the short-lived media reference needed for that assessment. Failure logs omit prompts, attachment URLs, and response text.
+
 ## Features
 
 | Feature | Implementation | Current evidence / limitation |
