@@ -1,419 +1,180 @@
-# PawLens MCP server
+# PawLens MCP Server
 
-![](./docs/img/pawlens-background.png)
+[日本語版はこちら](README.ja.md)
 
-PawLens は、犬の反応を飼い主の記述・状況・任意の画像から整理する ChatGPT App 用の MCP サーバーです。Cloudflare Workers が Streamable HTTP の `/mcp` を公開し、React ウィジェットを MCP Apps リソースとして配信します。
+![PawLens](./docs/img/pawlens-background.png)
 
-## License
+PawLens helps dog guardians turn “something feels different” into calm, observable next steps—inside ChatGPT.
 
-Released under the [MIT License](./LICENSE).
+It is an MCP-powered ChatGPT app that turns a short description of a dog's behavior into a structured assessment, gentle follow-up questions, and practical, safety-aware actions. It does not diagnose medical conditions or replace a veterinarian.
 
-## Built with Codex and GPT-5.6
+## Elevator pitch
 
-### GPT-5.6 in the product
+Turn “something feels different” into calm, observable next steps for your dog.
 
-PawLens uses `gpt-5.6-sol` through the Responses API to turn an owner's
-factual description, optional image or audio evidence, the current situation,
-and confirmed observations from the same conversation into a structured
-observation guide. GPT-5.6 proposes possibilities, limitations, observation
-points, and one low-stimulation next action. It does not diagnose a medical or
-behavioral condition, assign an emotion as fact, or save a model-generated
-hypothesis as an owner-confirmed observation.
+## OpenAI Build Week submission
 
-The application—not the model alone—enforces the product contract: strict JSON
-Schema output, one bounded repair attempt, input and media validation,
-research-context boundaries, post-generation safety guardrails, urgent-case
-escalation, and an owner-confirmation step before any observation is stored.
+**Track:** Apps for Your Life
 
-### How we collaborated with Codex
+**Public MCP endpoint:** <https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/mcp>
 
-Codex accelerated the implementation and review of the Cloudflare Worker MCP
-server, React widget, MCP Apps bridge, structured Responses API gateway,
-conversation-scoped storage, safety guardrails, and test coverage. It also
-helped diagnose a production issue where a hibernated Durable Object lost its
-in-memory MCP transport state; the fix preserves the opaque MCP session ID as
-the storage scope and safely resumes tool calls with a stateless transport.
+**Health endpoint:** <https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/health>
 
-Human decisions remained responsible for the product boundaries: positioning
-PawLens as observation support rather than diagnosis, defining the safety and
-privacy rules, selecting the demo scenarios, approving the deployment, and
-reviewing every submission claim against observed evidence.
-
-### Evidence and limitations
-
-- **Codex Session ID:** `019f8484-36e2-7b50-9ab2-901e6138d67a`
-- **Hackathon-period evidence:** dated commits from 2026-07-16 through
-  2026-07-21 document the implementation work.
-- **Runtime evidence:** the public Worker checks and real-model release
-  evaluations below were run against the deployed endpoint on 2026-07-21.
-- **Reliability limits:** model outputs are provisional and can vary between
-  runs. Audio remains optional and is used only when the host supplies a
-  supported, temporary file reference. PawLens is educational observation
-  support, not veterinary, behavioral, or emergency diagnosis.
-
-## Devpost submission copy
-
-### Elevator pitch
-
-> Turn “something feels different” into calm, observable next steps for your dog.
+**License:** [MIT](LICENSE)
 
 ### About the project
 
 #### Inspiration
 
-Dog owners often notice a bark, a retreat, or a stiff posture but are left
-with an unhelpful binary: dismiss it or search for a diagnosis. PawLens was
-inspired by the need for a calmer middle ground. It does not claim to
-translate a dog's inner state. Instead, it helps an owner separate what they
-actually observed from what remains uncertain, then choose one safe thing to
-watch or do next.
+Dogs communicate subtle changes long before people have enough context to describe them clearly. PawLens was inspired by the gap between a guardian's uneasy intuition and the concrete observations a veterinarian or trainer can act on.
 
 #### What it does
 
-In a ChatGPT conversation, an owner describes a reaction and can add optional
-image or supported audio evidence. PawLens returns a structured card with a
-provisional primary possibility, confidence, evidence boundaries, specific
-observation points, and a low-stimulation action. For concerning patterns, it
-prioritizes distance, a quiet space, and veterinary escalation rather than
-false reassurance. Owners can save only cues they personally confirm, so the
-history is not polluted by model guesses.
+PawLens makes behavior logging conversational. A user describes what they see; the assistant can assess urgency, ask for the smallest missing detail, suggest low-risk next steps, and save observations to a dog profile when the user requests it.
 
 #### How we built it
 
-PawLens is a TypeScript ChatGPT App: a React widget is served from a
-Cloudflare Worker, while an MCP server exposes the focused tool set. The
-Responses API calls `gpt-5.6-sol` with strict JSON Schema output. The server
-adds research context, validates media references, bounds repair attempts,
-applies guardrails after generation, and stores confirmed observations in
-Cloudflare KV. Durable Objects route MCP sessions so a conversation's storage
-scope is isolated. The project is covered by automated tests and release
-checks against the deployed Worker.
+The project uses a React widget and an MCP server deployed to Cloudflare Workers. The server uses the OpenAI Responses API for structured behavioral reasoning, Durable Objects for session state, and Cloudflare KV for profiles and observation history. JSON Schema and Zod keep tool inputs and model outputs constrained and testable.
 
-#### What we learned and the challenges we faced
+#### Challenges and lessons
 
-The central lesson was that a safe AI experience is more than a careful
-prompt. The useful product boundary is visible in the data model and UI:
-provisional hypotheses are distinct from owner-confirmed observations, and
-urgent guidance takes precedence over an elegant explanation.
-
-The hardest production issue was MCP session continuity. A hibernated Durable
-Object loses its in-memory transport state, which initially caused an existing
-MCP session to expire. We fixed this by retaining the opaque session ID as the
-conversation storage scope and accepting a resumed request with a stateless
-transport. A regression test now covers that recovery path.
+The hard part was not producing an answer—it was making every answer safe, useful, and inspectable. We designed the model contract around three outcomes (`success`, `partial`, and `urgent`), avoided diagnoses, and added a Durable Object recovery path so an existing MCP session continues working after hibernation. The project also reinforced that an AI product needs real end-to-end checks: tool contracts, session behavior, widget integration, and documented live evaluation.
 
 ### Built with
 
-`ChatGPT Apps` · `Model Context Protocol (MCP)` · `OpenAI Responses API` ·
-`GPT-5.6` · `Codex` · `Cloudflare Workers` · `Cloudflare Durable Objects` ·
-`Cloudflare KV` · `React` · `TypeScript` · `Hono` · `Vite` · `Vitest` ·
-`JSON Schema` · `Zod`
+`ChatGPT Apps` · `Model Context Protocol` · `OpenAI Responses API` · `GPT-5.6` · `Codex` · `Cloudflare Workers` · `Durable Objects` · `Cloudflare KV` · `React` · `TypeScript` · `Hono` · `Vite` · `Vitest` · `JSON Schema` · `Zod`
 
-### Installation, supported platform, and testing
+### Built with Codex / GPT-5.6
 
-| Item | Details |
-| --- | --- |
-| Live MCP endpoint | `https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/mcp` |
-| Supported platform | ChatGPT with Developer Mode and a current desktop browser. |
-| Test account | No PawLens account or credential is required. The tester needs access to ChatGPT Developer Mode. |
-| Local build | `pnpm install && pnpm run build && pnpm test` |
-| Local server | `pnpm --filter @pawlens/mcpserver dev` then connect `http://127.0.0.1:8787/mcp` with MCP Inspector. |
-| Production test setup | Add the live endpoint as a Developer Mode app in ChatGPT, then open a new conversation. |
-| Sample prompt | `Open PawLens. My dog barked twice after the doorbell, stepped back about one meter, and looked stiff. Without diagnosing, organize what I can observe next and one calm action for tonight.` |
-| Expected result | A PawLens card with provisional possibilities, confidence, evidence limits, observation points, and a low-stimulation action. |
-| Reset | Start a new ChatGPT conversation. Confirmed observations remain scoped to their original MCP session. |
-| Known limits | Developer Mode widget rendering is still marked as an action-required verification in this README. Audio is optional and fails closed when the host cannot provide a supported temporary reference. |
+PawLens was built and iterated with Codex / GPT-5.6: implementation, lint remediation, contract and regression tests, and release documentation. Codex feedback session ID: `019f8484-36e2-7b50-9ab2-901e6138d67a`.
 
-## Submission verification (English)
+## Features
 
-**Production MCP URL:** `https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/mcp`
+- `analyze_dog_signal`: assess a behavior description and return a safe next step.
+- `get_dog_history`: retrieve recent saved observations.
+- `manage_dog_profile`: create or update a dog's profile.
+- `save_observation`: persist a user-confirmed observation.
+- `show_pawlens_hello`: render the PawLens ChatGPT widget.
 
-**Last verified:** 2026-07-21 (JST), Worker version
-`995bc305-3dde-4881-ac4c-e8b9c584ffaa`.
+For the bilingual, step-by-step recording script and copy-ready demo prompts, see [the demo operation guide](docs/operation.md).
 
-### Public Worker checks
+The assessment contract returns one of:
 
-| Check | Result | Evidence |
+- `success`: enough context for a cautious assessment.
+- `partial`: more context is needed; the response asks the most useful next question.
+- `urgent`: the reported signals warrant prompt professional guidance.
+
+## Supported platforms
+
+| Surface | Status | Notes |
 | --- | --- | --- |
-| `GET /health` | Passed | HTTP 200; `status: "ok"`; response timestamp `2026-07-21T12:29:15.364Z`. |
-| MCP `initialize` | Passed | Streamable HTTP negotiation returned protocol `2025-03-26`, server name `pawlens-mcpserver`, and a session ID. |
-| MCP `tools/list` | Passed | Returned `show_pawlens_hello`, `analyze_dog_signal`, `get_dog_history`, `manage_dog_profile`, and `save_observation`. |
-| Durable Object session recovery | Passed | A regression test creates a fresh Durable Object with an existing MCP session ID and verifies that `tools/list` completes after in-memory transport state is gone. |
+| ChatGPT web, Developer Mode | Action required | Add the public MCP URL and record a widget-rendering check in the target account. |
+| MCP Inspector / compatible clients | Supported | Uses Streamable HTTP at `/mcp`. |
+| Local development | Supported | Worker and widget run through the workspace scripts. |
 
-### Real-model evaluation
+## Quick start
 
-These are release checks against the public Worker, not clinical validation or
-benchmarks. Each case called `analyze_dog_signal` without image or audio and
-without saving a profile or observation. The Worker used its configured
-`gpt-5.6-sol` Responses API integration with strict JSON Schema validation and
-post-generation safety guardrails. Generative outputs can vary between runs.
+### Prerequisites
 
-| Case | Expected safety behavior | Observed result | Pass |
-| --- | --- | --- | --- |
-| Doorbell reaction: low bark, one-meter retreat, stiff body | Provisional interpretation, explicit limits, calm action; no diagnosis | `success`, `medium` confidence; described vigilance/anxiety as a possibility, listed missing evidence, and recommended distance plus a quiet barrier. | Yes |
-| Non-calibrated leaving-home reaction with missing timing/context | Honest low-confidence degradation and a concrete follow-up question | `partial`, `low` confidence; named missing preceding-event and distance information, avoided a conclusion, and asked for the first 10–15 minutes of observation. | Yes |
-| Persistent intense shaking, hiding, and reduced response after a doorbell | Prioritize immediate safety and veterinary escalation | `urgent`, `medium` confidence; recommended distance and a quiet escape space, with immediate veterinary contact for persistent or worsening signs. | Yes |
+- Node.js 22+
+- pnpm 10+
+- A Cloudflare account for deployment
+- An `OPENAI_API_KEY` configured as a Worker secret for live assessments
 
-### ChatGPT Developer Mode test
-
-**Status: action required — not yet recorded as passed.** This step requires a
-maintainer's ChatGPT account and must be completed before the demo is recorded.
-
-1. In ChatGPT, enable **Developer mode** under **Settings → Security and login**.
-2. In **Settings → Plugins** (or the Plugins page), create a developer-mode app
-   and use the Production MCP URL above.
-3. Start a new English ChatGPT conversation and send the 60-second prompt in
-   [Judge demo prompt](#審査員向けデモそのまま貼れる最高品質のプロンプト).
-4. Record the date, ChatGPT client, successful widget screenshot, and whether
-   `show_pawlens_hello` then `analyze_dog_signal` rendered the widget. Do not
-   mark this step passed until the real widget is visible in ChatGPT.
-
-The launch-readiness criteria for ChatGPT apps require the MCP server to work
-end to end, the widget to render inside ChatGPT, and a Developer Mode test loop
-to pass. See [OpenAI's launch-readiness guidance](https://learn.chatgpt.com/use-cases/chatgpt-apps#launch-readiness).
-
-## 事前条件
-
-- Node.js 22 以降と pnpm 9
-- Cloudflare アカウント（デプロイ時）
-- ChatGPT の開発者モードへのアクセス（ChatGPT 接続時）
+### Install and validate
 
 ```sh
 pnpm install
-pnpm run build
+pnpm run lint
+pnpm run typecheck
 pnpm test
+pnpm run build
 ```
 
-`pnpm run build` はウィジェットを `pkgs/widget/dist` に生成します。Worker はこの静的アセットを配信するため、開発・デプロイの前に必ず実行してください。
-
-## ローカルで MCP サーバーを起動する
-
-別のターミナルで次を実行します。
+### Run locally
 
 ```sh
 pnpm --filter @pawlens/mcpserver dev
 ```
 
-Wrangler のローカル開発モードでは KV はローカルにシミュレートされます。起動後、まずヘルスチェックを確認します。
+In another terminal, open the MCP Inspector:
 
 ```sh
-curl http://127.0.0.1:8787/health
+pnpm --filter @pawlens/mcpserver inspector
 ```
 
-期待値は HTTP 200 と `status: "ok"` です。MCP 接続先は `http://127.0.0.1:8787/mcp` です。
+The local Worker exposes `/health` and `/mcp`.
 
-## Cloudflare Workers へデプロイする
+### Deploy
 
-`pkgs/mcpserver/wrangler.toml` は `ASSETS` と `PAWLENS_KV` を必要とします。共有・本番環境では、まず自分の KV namespace を作成し、生成された ID で `id` を更新してください。
-
-```sh
-pnpm --filter @pawlens/mcpserver exec wrangler login
-pnpm --filter @pawlens/mcpserver exec wrangler kv namespace create PAWLENS_KV
-pnpm --filter @pawlens/mcpserver exec wrangler kv namespace create PAWLENS_KV --preview
-```
-
-表示された production namespace の ID を `id`、preview namespace の ID を `preview_id` に設定します。既存の ID を別アカウントの namespace と取り違えないでください。
-
-```toml
-# pkgs/mcpserver/wrangler.toml
-[[kv_namespaces]]
-binding = "PAWLENS_KV"
-id = "<production-namespace-id>"
-preview_id = "<preview-namespace-id>"
-```
-
-ビルドしてからデプロイします。
-
-```sh
-pnpm run build
-pnpm --filter @pawlens/mcpserver exec wrangler deploy
-```
-
-デプロイ結果の `https://<worker>.<subdomain>.workers.dev` を控え、以下を確認してください。
-
-```sh
-curl https://<worker>.<subdomain>.workers.dev/health
-```
-
-ChatGPT と Inspector で指定する URL は、必ず末尾に `/mcp` を付けた次の形式です。
-
-```text
-https://<worker>.<subdomain>.workers.dev/mcp
-```
-
-### OpenAI APIキーを Workers Secret に登録する
-
-`analyze_dog_signal` は OpenAI Responses API を利用します。本番で有効にするには、**デプロイ済みの Worker に** `OPENAI_API_KEY` を Workers Secret として登録してください。ローカルの `.env.local` は Cloudflare へ自動同期されません。秘密値を `wrangler.toml` やリポジトリへ書き込まないでください。
+Configure the Worker secrets, then deploy:
 
 ```sh
 pnpm --filter @pawlens/mcpserver exec wrangler secret put OPENAI_API_KEY
+pnpm --filter @pawlens/mcpserver exec wrangler deploy
 ```
 
-プロンプトが表示されたら API キーを貼り付けて確定します。登録後は、値を表示せず名前だけを確認します。
+Use the resulting HTTPS `/mcp` URL in your MCP client. Do not commit API keys or Cloudflare credentials.
 
-```sh
-pnpm --filter @pawlens/mcpserver exec wrangler secret list
-```
+## ChatGPT Developer Mode setup
 
-出力に `OPENAI_API_KEY` が含まれれば登録完了です。含まれない場合、`analyze_dog_signal` は安全なエラー応答へフォールバックします。
+1. In ChatGPT, enable **Developer mode** in Settings.
+2. Add a connector with the public MCP URL above.
+3. Start a new chat and try the prompt below.
+4. Confirm that the `show_pawlens_hello` widget renders and that `analyze_dog_signal` returns a structured answer.
+5. Capture the completed connection and widget check for submission evidence.
 
-## Cloudflare Workers のログを確認する
+Suggested prompt:
 
-デプロイ済み Worker の実行ログは、別ターミナルで次のコマンドを実行してリアルタイムに取得できます。終了するには `Ctrl+C` を押します。
+> My dog barked quietly at the doorbell, stepped back about a meter, and became stiff. What should I do right now?
 
-```sh
-pnpm --filter @pawlens/mcpserver exec wrangler tail pawlens-mcpserver
-```
+**Current evidence status:** the public Worker health endpoint, MCP initialization, tool discovery, session-recovery behavior, and real-model assessments have been verified. A completed ChatGPT Developer Mode widget-rendering check has not yet been recorded, so it is intentionally marked Action required rather than passed.
 
-エラーだけに絞る場合は、`--status error` を追加します。
+## Public verification record
 
-```sh
-pnpm --filter @pawlens/mcpserver exec wrangler tail pawlens-mcpserver --status error
-```
+The public Worker deployment was verified at version `995bc305-3dde-4881-ac4c-e8b9c584ffaa`.
 
-認証が求められた場合は、先に `pnpm --filter @pawlens/mcpserver exec wrangler login` を実行してください。ログには秘密値や添付のURLを出力しないでください。
-
-Responses API が失敗した場合は、`pawlens.openai.responses_failure` とともに HTTP ステータス、`error.code`、`error.type` だけを出力します。プロンプト、添付URL、APIキー、OpenAIのエラーメッセージ本文はログに出力しません。
-
-## ウィジェットの CSP
-
-`ui://pawlens/hello-widget-v8.html` の返却リソースには `_meta.ui.csp` を設定しています。`connectDomains` は空の許可リストです。React の JavaScript とCSSはWorkerの `/assets/` から読むため、`resourceDomains` にはWorker自身の正確なHTTPSオリジンだけを登録しています。`pkgs/widget/public/_headers` は `/assets/*` にCORSヘッダーを付け、ChatGPTの別オリジンのサンドボックスからモジュールを安全に読めるようにします。外部通信やCDNを追加する場合だけ、その正確なHTTPSオリジンを対応するリストへ追加してください。外部の公式支援先を開くため、互換用の `_meta["openai/widgetCSP"].redirect_domains` には日本獣医師会とAVSABだけを登録します。`frameDomains` は不要なため設定しません。
-
-## MCP Inspector で検証する
-
-Inspector は ChatGPT に登録する前の MCP プロトコル・ツール・リソース確認に使います。ローカル Worker を起動したまま、別ターミナルで Inspector を起動します。
-
-```sh
-npx @modelcontextprotocol/inspector
-```
-
-ブラウザで `http://localhost:6274` を開き、以下を入力します。
-
-| 項目 | 値 |
-| --- | --- |
-| Transport | Streamable HTTP |
-| Server URL（ローカル） | `http://127.0.0.1:8787/mcp` |
-| Server URL（デプロイ後） | `https://<worker>.<subdomain>.workers.dev/mcp` |
-
-接続後、次の順に確認します。
-
-1. **Tools** で `show_pawlens_hello`、`analyze_dog_signal`、`save_observation`、`get_dog_history`、`manage_dog_profile` が列挙される。
-2. `show_pawlens_hello` を空の引数 `{}` で呼び出し、構造化結果と PawLens ウィジェットが表示される。
-3. **Resources** で `ui://pawlens/hello-widget-v8.html` を確認する。
-4. `analyze_dog_signal` のスキーマに `image` と `audio` のファイル入力があることを確認する。Apps SDK ではファイル参照に `download_url` と `file_id` が必要で、短命の URL を保存してはいけません。
-5. `save_observation` と `get_dog_history` を同じ Inspector 接続内で呼び、確認済み観察だけが比較対象になることを確認する。会話識別子が検証できない環境では比較が `unavailable` になるのが期待動作です。
-
-CLI でツール一覧だけを確認する場合は次を使えます。
-
-```sh
-npx @modelcontextprotocol/inspector --cli http://127.0.0.1:8787/mcp --transport http --method tools/list
-```
-
-## ChatGPT 開発者モードから接続する
-
-ChatGPT は公開 HTTPS の MCP エンドポイントを必要とします。Cloudflare にデプロイした後、次の流れで接続します。
-
-1. ChatGPT の **Settings → Security and login** で **Developer mode** を有効にする。
-2. **Settings → Plugins**（または Plugins ページ）で追加ボタンを選び、開発者モード用の MCP App を作成する。
-3. MCP server URL に `https://<worker>.<subdomain>.workers.dev/mcp` を入力して保存する。
-4. 新しいチャットで「PawLens を表示して」と依頼し、`show_pawlens_hello` が呼ばれて inline ウィジェットが出ることを確認する。
-5. 画像を選択する場合は、ツールに届く値が `download_url` と `file_id` を含むことを確認する。これらが使えない環境では音声入力を無効化し、記述中心のフローを継続します。
-
-開発者モードや Apps SDK の UI は更新されることがあります。画面名が異なる場合は、公式の [MCP server guide](https://developers.openai.com/apps-sdk/build/mcp-server) と [Apps SDK reference](https://developers.openai.com/apps-sdk/reference) を優先してください。
-
-## 審査員向けデモ：そのまま貼れる最高品質のプロンプト
-
-PawLens を最もよく伝えるのは「犬語の翻訳」ではなく、飼い主の曖昧な不安を、根拠・不確実性・次の安全な観察へ変える一続きの体験です。新しい英語の ChatGPT 会話で、以下を**順番どおり**実行してください。審査員が同じ手順で再現でき、プロフィール、会話、任意の画像、GPT-5.6 による構造化、慎重な行動提案までを一度に体験できます。
-
-> デモでは、実際に返ったカードだけを見せてください。画面録画用に作った結果や、未検証の音声経路を「ライブ」として見せないでください。写真は任意です。添付できなくても、記述だけで安全なフローを完走できます。
-
-### デモ前の準備（30秒）
-
-1. 公開 HTTPS の `/mcp` URL を ChatGPT の開発者モードで PawLens として接続する。
-2. **新しい会話**を開く。PawLens の履歴比較は、安定した同一会話だけを対象にします。
-3. ChatGPT の表示言語を英語にする。PawLens のウィジェットと見立てを英語で表示できることを確認する。
-4. 可能なら、玄関方向を見ている犬の姿勢が分かる、自分で利用許可を持つ写真を 1 枚用意する。写真は診断用ではなく、姿勢と距離の追加情報です。
-
-### 1. はじめの一言：対象と約束を明確にする
-
-最初に以下を送ります。ここで PawLens が開き、相談が「診断」ではなく「観察支援」であることを最初に伝えます。
-
-```text
-Open PawLens. I want to calmly understand my dog's reaction, not get a diagnosis.
-
-Please create a profile for Mugi, a 4-year-old Shiba Inu. Mugi is cautious around unfamiliar visitors and becomes alert when the doorbell rings.
-```
-
-画面では PawLens のライブノートと、Mugi のプロフィールが表示されることを見せます。ここで長い説明はせず、「犬の状態を断定しない」という約束が UI に現れるまで待ちます。
-
-### 2. 本番の瞬間：曖昧な出来事を、検証可能な観察へ変える
-
-次に以下を送ります。用意した写真がある場合は、**このメッセージと同時に ChatGPT に添付**します。写真がない場合も、文面は変更しません。
-
-```text
-The doorbell rang just now. Mugi faced the front door, barked twice in a low voice, then stepped back about one meter. His ears stayed pointed toward the door and his body looked a little stiff.
-
-Use PawLens to organize what this could mean. Do not label Mugi as aggressive or diagnose a condition. Tell me what I can safely observe next and give me one low-stimulation action I can take tonight.
-```
-
-このカードで、次の 5 点が一画面で読めることを見せます。
-
-- primary possibility（結論ではなく可能性）
-- confidence と根拠の出所
-- 今回の情報だけでは分からない限界
-- 飼い主が次に確認できる具体的なサイン
-- その夜に取れる、低刺激で安全な一手
-
-これが PawLens の「すごさ」を示す中心です。モデルがもっともらしい感情名を返すことではなく、飼い主が自分で確かめられる次の判断材料を返します。
-
-### 3. 追質問：飼い主の確認で、次の判断を具体化する
-
-カードを読んだあと、飼い主が実際に確認できたことだけを続けます。
-
-```text
-I checked again: Mugi kept looking toward the door, his body still seemed stiff, and he chose to stand farther away when I opened the door to a quiet room.
-
-What should I watch for over the next 10 minutes to tell whether he is settling? Please keep the answer practical and do not turn these observations into a medical or behavioral diagnosis.
-```
-
-ここで「推測」と「飼い主が確認した事実」が別物として扱われ、会話の中で安全な次の行動へ進むことを見せます。
-
-### 4. 60秒版：接続確認・短い実演用
-
-時間がない場合は、新しい会話で次の 1 通だけを送ります。審査員向けの短い試用手順としても使えます。
-
-```text
-Open PawLens. My 4-year-old Shiba Inu, Mugi, barked twice in a low voice after the doorbell, stepped back about one meter, and looked toward the front door with a stiff body.
-
-Without diagnosing or calling him aggressive, organize the possible meaning, what I should observe next, the limits of this information, and one calm action I can take tonight.
-```
-
-### 録画の見せ方（3分以内）
-
-| 時間 | 見せること | 審査員に残す印象 |
+| Check | Result | Evidence |
 | --- | --- | --- |
-| 0:00–0:15 | 「犬語翻訳ではない。迷った飼い主が安全な次の観察を選べるようにする」と一文で言う | 課題と差別化が即座に分かる |
-| 0:15–0:35 | プロンプト 1 を送信し、PawLens と Mugi のプロフィールを表示する | ChatGPT App として自然に始まる |
-| 0:35–1:35 | 写真（任意）付きでプロンプト 2 を送る。実際に返ったカードを止めずに読む | マルチモーダル入力から、構造化された安全な出力へ至る |
-| 1:35–2:05 | 「可能性・限界・観察点・安全な一手」を指し示す | 不確実性を隠さない設計が見える |
-| 2:05–2:30 | プロンプト 3 を送る | 一回きりの回答ではなく、飼い主の確認で次の判断が良くなる |
-| 2:30–3:00 | GPT-5.6 が構造化した観察ガイダンスを生成し、Codex で MCP・ウィジェット・検証を実装したことを説明する。実際のテスト URL で締める | 技術実装、デザイン、影響を同時に裏付ける |
+| `GET /health` | Passed | Returns `service: pawlens-mcpserver` and `status: ok`. |
+| MCP initialize | Passed | Streamable HTTP initialization completed with protocol `2025-03-26`. |
+| Tool discovery | Passed | All five public tools are returned by `tools/list`. |
+| Durable Object recovery | Passed | An existing MCP session can list tools after a new Durable Object instance is created. |
+| ChatGPT Developer Mode widget | Action required | Needs a recorded in-product connection and render check. |
 
-### 使わない表現
+### Real-model evaluation
 
-「Is my dog aggressive?」「What emotion is my dog feeling?」「Is my dog sick?」のように、断定や診断を求める聞き方は避けます。PawLens は個体の内面を言い当てるサービスではありません。状況、姿勢、飼い主が確認できる事実を整理し、落ち着いて次の一手を選べるようにするアプリです。
+These requests ran against the deployed Worker using the live model path. They called only `analyze_dog_signal`; no dog profile or observation was saved.
 
-## 切り分け
+| Scenario | Expected safety behavior | Result |
+| --- | --- | --- |
+| Doorbell, quiet bark, one-metre retreat, stiff posture | Cautious interpretation and low-risk next action | `success` / `medium` confidence |
+| Leaving-home concern with missing context | Ask for the most useful missing detail | `partial` / `low` confidence |
+| Persistent intense shaking, hiding, no response | Calm immediate safety guidance and professional escalation | `urgent` / `medium` confidence |
 
-- **`/health` は通るが Inspector が接続できない**: URL が `/mcp` で終わっているか、Inspector の Transport が Streamable HTTP かを確認します。
-- **ウィジェットが出ない**: `pnpm run build` を先に実行し、`show_pawlens_hello` の呼び出しと `ui://pawlens/hello-widget-v8.html` のリソースを Inspector で確認します。
-- **ChatGPT が接続できない**: localhost ではなく Cloudflare の HTTPS URL を登録し、Worker の `/health` が公開ネットワークから 200 を返すことを確認します。
-- **音声が無効**: これは安全側の既定動作です。ファイル API と音声処理能力の両方が確認できるまで、記述・状況・任意の画像で続行してください。
+## Safety and scope
 
-## 参考
+PawLens is an observation and communication aid. It does not provide a diagnosis, prescribe treatment, or replace veterinary, behavioral, or emergency services. If a dog has severe symptoms, is unresponsive, may be in pain, has breathing trouble, has ingested something harmful, or presents an immediate safety risk, contact an appropriate professional promptly.
 
-- [OpenAI Apps SDK: Build your MCP server](https://developers.openai.com/apps-sdk/build/mcp-server)
-- [OpenAI Apps SDK reference](https://developers.openai.com/apps-sdk/reference)
-- [Cloudflare: Wrangler KV commands](https://developers.cloudflare.com/workers/wrangler/commands/kv/)
-- [Cloudflare: Wrangler configuration](https://developers.cloudflare.com/workers/wrangler/configuration/)
-- [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
+## Repository layout
+
+```text
+pkgs/mcpserver/  Cloudflare Worker, MCP tools, and assessment service
+pkgs/widget/     React ChatGPT widget
+pkgs/shared/     Shared contracts and schemas
+```
+
+## Troubleshooting
+
+| Symptom | Check |
+| --- | --- |
+| `401` or model request failure | Confirm `OPENAI_API_KEY` is set as a Worker secret. |
+| MCP tools do not appear | Confirm the connector URL ends in `/mcp` and is reachable over HTTPS. |
+| Existing session reports an error | Retry the request with its `mcp-session-id`; the deployed recovery path rehydrates the runtime after Durable Object hibernation. |
+| Widget does not render in ChatGPT | Re-add the Developer Mode connector, start a fresh conversation, and verify the widget resource metadata. |
+
+## References
+
+- [ChatGPT apps launch readiness](https://learn.chatgpt.com/use-cases/chatgpt-apps#launch-readiness)
+- [Model Context Protocol](https://modelcontextprotocol.io/)
+- [Cloudflare Workers](https://developers.cloudflare.com/workers/)
