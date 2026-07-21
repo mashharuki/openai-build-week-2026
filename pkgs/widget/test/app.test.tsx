@@ -45,6 +45,18 @@ describe("HelloWidget", () => {
     expect(screen.queryByLabelText("愛犬の名前")).toBeNull();
   });
 
+  it("ツール入力の言語をホストUIの言語より優先して表示する", () => {
+    vi.stubGlobal("openai", {
+      locale: "ja-JP",
+      toolInput: { locale: "en" },
+      toolOutput: assessmentResult,
+    });
+    render(<HelloWidget locale="ja" />);
+
+    expect(screen.getByLabelText("Assessment")).not.toBeNull();
+    expect(screen.queryByLabelText("見立て結果")).toBeNull();
+  });
+
   it("ChatGPTのグローバル更新から最新の見立てを反映する", () => {
     render(<HelloWidget />);
 

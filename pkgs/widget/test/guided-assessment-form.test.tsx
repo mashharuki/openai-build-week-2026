@@ -171,6 +171,9 @@ describe("GuidedAssessmentForm", () => {
     fireEvent.change(screen.getByLabelText("状況"), {
       target: { value: "doorbell" },
     });
+    fireEvent.change(screen.getByLabelText(/人との距離/), {
+      target: { value: "2.5" },
+    });
     fireEvent.click(screen.getByRole("button", { name: "見立てを依頼" }));
 
     await waitFor(() =>
@@ -178,7 +181,7 @@ describe("GuidedAssessmentForm", () => {
         audio: null,
         barkDescription: "低い声で2回吠えました",
         context: "doorbell",
-        distanceToPerson: null,
+        distance_to_trigger_meters: 2.5,
         dogId: "dog-1",
         image: null,
         locale: "ja",

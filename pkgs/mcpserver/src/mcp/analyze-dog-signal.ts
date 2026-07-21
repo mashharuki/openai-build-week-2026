@@ -37,7 +37,7 @@ export function registerAnalyzeDogSignal(
       outputSchema: AssessmentResultSchema,
       title: "犬の反応を見立てる",
     },
-    async (input, extra) => {
+    async (input) => {
       // Apps SDK supplies snake_case file parameters. The canonical form is
       // retained for the widget's already-stored evidence and local tests;
       // ChatGPT scans the descriptor above, so new host calls use the former.
@@ -47,31 +47,14 @@ export function registerAnalyzeDogSignal(
       const signal = appsSdkSignal.success
         ? appsSdkSignal.data
         : SignalInputSchema.parse(input);
-      // `locale` is model-generated tool input and can reflect the language of
-      // the last message rather than the ChatGPT UI. The host sends its BCP 47
-      // locale in request metadata, which is also what the widget receives.
-      // Let that host locale be authoritative so chrome and model text cannot
-      // render in different languages.
-      const assessment = await assessments.assess(scope, {
-        ...signal,
-        locale: resolveHostLocale(extra?._meta),
-      });
+      // `locale` is part of the tool contract: it specifies the language for
+      // owner guidance. It takes precedence over the ChatGPT UI locale so an
+      // English request in a Japanese ChatGPT client remains all English.
+      const assessment = await assessments.assess(scope, signal);
 
       return { content: [], structuredContent: assessment };
     },
   );
-}
-
-export function resolveHostLocale(meta: unknown): "en" | "ja" {
-  if (!meta || typeof meta !== "object") return "ja";
-
-  const candidate = meta as Record<string, unknown>;
-  const locale =
-    candidate["openai/locale"] ?? candidate["webplus/i18n"] ?? "ja";
-
-  return typeof locale === "string" && locale.toLowerCase().startsWith("en")
-    ? "en"
-    : "ja";
 }
 
 /**

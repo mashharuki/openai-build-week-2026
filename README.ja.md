@@ -1,16 +1,16 @@
-# PawLens MCP サーバー
+# PawLens Chat GPT Plugin
 
 [English README](./README.md)
 
 ![PawLens](./docs/img/pawlens-background.png)
 
-PawLens は、犬の反応についての飼い主の記述、状況、任意の画像・音声を、落ち着いて確認できる次の観察と行動に整理する ChatGPT App です。診断や「犬語の翻訳」は行わず、仮説・根拠の限界・飼い主が確かめるサインを分けて示します。
+PawLens は、犬の反応についての飼い主の記述、状況、任意の画像・音声を、落ち着いて確認できる次の観察と行動に整理する ChatGPT App です。診断や「犬語の翻訳」は行わず、仮説・根拠の限界・飼い主が確かめるサインを分けて示します。犬との共生をもっと楽しく豊かにするためのプロダクトです。
 
 録画用の英語・日本語プロンプトと進行台本は、[デモ運用ガイド](./docs/operation.md) を参照してください。
 
 ## Elevator pitch
 
-> 愛犬の「いつもと違う」を、落ち着いて観察できる次の一手へ変える。
+> 犬との共生をもっと楽しく豊かにするプロダクトです。このプロダクトを使うことで愛犬と話すことができます！
 
 ## Built with Codex and GPT-5.6
 
@@ -24,10 +24,55 @@ Codex は Cloudflare Worker MCP サーバー、React ウィジェット、MCP Ap
 - **ライセンス:** [MIT License](./LICENSE)
 - **制約:** PawLens は獣医学的・行動学的な診断や緊急判断の代替ではありません。音声はホストが安全な一時参照を提供できる場合だけ利用します。
 
+## システムアーキテクチャ
+
+```mermaid
+flowchart LR
+  User["飼い主"] --> ChatGPT["ChatGPT Developer Mode"]
+  ChatGPT -->|"Streamable HTTP /mcp"| Worker["Cloudflare Worker · Hono"]
+  Worker -->|"/health"| Health["ヘルスレスポンス"]
+  Worker -->|"MCP セッションをルーティング"| Session["Durable Object セッション"]
+  Session --> Runtime["MCP ランタイム"]
+
+  Runtime --> Tools["PawLens MCP ツール"]
+  Tools --> Assess["見立てサービス"]
+  Tools --> Profiles["プロフィール・観察サービス"]
+  Tools --> WidgetResource["ウィジェットリソース"]
+
+  Assess --> Evidence["入力・任意メディアの適応"]
+  Assess --> Research["状況別の研究ガイダンス"]
+  Assess --> Guardrails["スキーマ検証・安全ガードレール"]
+  Evidence --> Gateway["OpenAI Responses gateway"]
+  Research --> Gateway
+  Gateway -->|"strict JSON · store false"| GPT["OpenAI Responses API · GPT-5.6"]
+  GPT --> Guardrails
+
+  Profiles --> KV["Cloudflare KV"]
+  WidgetResource --> Assets["React ウィジェット静的アセット"]
+  Assets --> ChatGPT
+  Guardrails --> ChatGPT
+```
+
+Worker が MCP の経路とセッション復旧を担い、Durable Object が MCP セッションをスコープします。Cloudflare KV にはプロフィールと飼い主確認済みの観察だけを保存します。見立てでは、そのリクエスト中の任意メディア参照だけを Responses API に渡し、厳格な構造化結果を検証・ガードレール処理した後にウィジェットへ返します。
+
+## 機能一覧
+
+| 機能 | 実装内容 | 現在の証拠・制約 |
+| --- | --- | --- |
+| PawLens ウィジェット | `show_pawlens_hello` が React 製 MCP ウィジェットを返し、プロフィールの下書きを表示できます。 | 提供された ChatGPT Developer Mode のスクリーンショットで表示を確認済みです。 |
+| 犬プロフィール | `manage_dog_profile` が Cloudflare KV 上でプロフィールを作成・更新・確認付き削除します。 | プロフィールのウィジェット表示を確認済み。削除は現在の ChatGPT フローでは未実演です。 |
+| 犬の反応の見立て | `analyze_dog_signal` が事実の記述、状況、距離、任意メディア、研究ガイダンス、確認済み観察を統合します。 | 通常・情報不足・緊急の公開実モデル eval を確認済みです。 |
+| 構造化・安全な出力 | Responses API の strict JSON Schema、Zod 検証、最大1回の修復、非診断・緊急時ガードレールを適用します。 | `success`、`partial`、`urgent`、安全な `error` を返します。 |
+| 任意の画像・音声 | 画像・音声参照を受け付け、音声が使えないときは安全側に倒して記述だけで続行します。 | 画像は任意。直接音声はホスト機能に依存し、審査の必須経路ではありません。 |
+| 飼い主確認済み観察の保存 | `save_observation` はウィジェットからのみ呼び出せ、モデルの仮説を事実として保存しません。 | 実装・テスト済みですが、現在の ChatGPT 接続では保存 UI が使えないため、審査時に永続化を期待しないでください。 |
+| 同一会話内の履歴比較 | `get_dog_history` は、安定した会話が確認できる場合だけ、保存済みの確認観察を比較します。 | 未保存のチャット文から履歴を推測せず、保証できない場合は `unavailable` を返します。 |
+| MCP セッション復旧 | Streamable HTTP の `/mcp` を Durable Objects 経由で処理し、休止後も安全なトランスポートで再開します。 | 公開 Worker の初期化、ツール列挙、休止後復旧を確認済みです。 |
+| 日本語・英語対応 | ホストのロケールでモデル出力とウィジェット表示を日本語または英語へ切り替えます。 | 日本語の Developer Mode スクリーンショットあり。英語も同じ契約で対応します。 |
+
 ## 事前条件
 
 - Node.js 22 以降
-- pnpm 10 以降
+- pnpm 9.12.3 以降
 - デプロイには Cloudflare アカウント
 - ChatGPT へ接続するには Developer Mode へのアクセス
 
@@ -100,7 +145,7 @@ Open PawLens. My dog barked twice after the doorbell, stepped back about one met
 | MCP `tools/list` | 5つの PawLens ツールを取得 |
 | Session recovery | Durable Object 休止後のツール呼び出しを回帰テストで確認 |
 | 実モデル eval | 通常・情報不足・緊急の3ケースで期待する安全な結果を確認 |
-| ChatGPT Developer Mode のウィジェット表示 | **Action required**（実アカウントでの接続・表示記録が未完了） |
+| ChatGPT Developer Mode のウィジェット表示 | 制約付きで確認済み（ウィジェット・プロフィール表示は記録済み。現在の接続では確認済み観察の保存は利用不可） |
 
 実モデル eval は臨床検証やベンチマークではありません。通常ケースでは `success`、情報不足では `partial` / low confidence、持続する強い震えでは `urgent` と安全な獣医師相談導線を返しました。生成結果は実行ごとに変わり得ます。
 

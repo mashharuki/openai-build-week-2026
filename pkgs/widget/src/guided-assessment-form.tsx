@@ -59,7 +59,7 @@ export function GuidedAssessmentForm({
   const [barkDescription, setBarkDescription] = useState("");
   const [context, setContext] =
     useState<(typeof contextOptions)[number]["value"]>("unknown");
-  const [distanceToPerson, setDistanceToPerson] = useState("");
+  const [distanceToTriggerMeters, setDistanceToTriggerMeters] = useState("");
   const [audio, setAudio] = useState<FileReference | AppsSdkToolFile | null>(
     null,
   );
@@ -126,13 +126,26 @@ export function GuidedAssessmentForm({
   const requestAssessment = async () => {
     if (!profile || !barkDescription.trim()) return;
 
+    const distance = distanceToTriggerMeters.trim();
+    const distanceToTriggerMetersValue =
+      distance === "" ? null : Number(distance);
+    if (
+      distanceToTriggerMetersValue !== null &&
+      (!Number.isFinite(distanceToTriggerMetersValue) ||
+        distanceToTriggerMetersValue < 0 ||
+        distanceToTriggerMetersValue > 1_000)
+    ) {
+      setStatus(getErrorMessage("generation_failed", locale));
+      return;
+    }
+
     setIsRequesting(true);
     try {
       const result = await callTool("analyze_dog_signal", {
         audio,
         barkDescription: barkDescription.trim(),
         context,
-        distanceToPerson: distanceToPerson.trim() || null,
+        distance_to_trigger_meters: distanceToTriggerMetersValue,
         dogId: profile.id,
         image,
         locale,
@@ -406,9 +419,14 @@ export function GuidedAssessmentForm({
           <label className="form-field">
             {copy.distance}
             <input
-              onChange={(event) => setDistanceToPerson(event.target.value)}
-              type="text"
-              value={distanceToPerson}
+              max={1_000}
+              min={0}
+              onChange={(event) =>
+                setDistanceToTriggerMeters(event.target.value)
+              }
+              step="any"
+              type="number"
+              value={distanceToTriggerMeters}
             />
           </label>
           <label className="form-field form-field-wide">

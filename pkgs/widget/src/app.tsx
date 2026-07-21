@@ -8,6 +8,7 @@ import {
 } from "@pawlens/shared";
 
 import { AssessmentCard } from "./assessment-card.js";
+import { resolveToolInputLocale } from "./locale.js";
 import {
   getStructuredContentFromBridgeMessage,
   startMcpAppsBridge,
@@ -75,9 +76,16 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
     Pick<DogProfile, "name" | "temperamentNote"> | undefined
   >();
   const [state, setState] = useState<WidgetState>({ kind: "empty" });
+  const [widgetLocale, setWidgetLocale] = useState(locale);
 
   useEffect(() => {
-    const applyStructuredContent = (nextContent: unknown) => {
+    const applyStructuredContent = (
+      nextContent: unknown,
+      toolInput = window.openai?.toolInput,
+    ) => {
+      const requestedLocale = resolveToolInputLocale(toolInput);
+      if (requestedLocale) setWidgetLocale(requestedLocale);
+
       const assessment = AssessmentResultSchema.safeParse(nextContent);
       if (assessment.success) {
         setState({ assessment: assessment.data, kind: "success" });
@@ -114,9 +122,11 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
 
     const onOpenAiGlobals = (event: Event) => {
       const globals = (
-        event as CustomEvent<{ globals?: { toolOutput?: unknown } }>
+        event as CustomEvent<{
+          globals?: { toolInput?: unknown; toolOutput?: unknown };
+        }>
       ).detail?.globals;
-      applyStructuredContent(globals?.toolOutput);
+      applyStructuredContent(globals?.toolOutput, globals?.toolInput);
     };
 
     window.addEventListener("message", onMessage, { passive: true });
@@ -126,7 +136,7 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
     // The host may make the initial tool result available before the iframe's
     // bridge listener starts. Hydrating from the mirrored global prevents a
     // remounted widget from falling back to its blank intake screen.
-    applyStructuredContent(window.openai?.toolOutput);
+    applyStructuredContent(window.openai?.toolOutput, window.openai?.toolInput);
     const stopBridge = startMcpAppsBridge(window);
     return () => {
       stopBridge();
@@ -144,7 +154,7 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
           ? "reduced"
           : "full"
       }
-      lang={locale}
+      lang={widgetLocale}
     >
       <header className="brand-header">
         <div aria-hidden="true" className="brand-mark">
@@ -159,7 +169,7 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
           <p className="brand-eyebrow">OBSERVE · UNDERSTAND · CARE</p>
           <h1 translate="no">PawLens</h1>
           <p>
-            {locale === "ja"
+            {widgetLocale === "ja"
               ? "愛犬の「いつもと違う」を、落ち着いて観察するために。"
               : "A calm way to notice what is different for your dog."}
           </p>
@@ -169,12 +179,12 @@ export function HelloWidget({ locale = "ja" }: { locale?: Locale }) {
         <AssessmentCard
           assessment={state.assessment}
           dogName={profile?.name}
-          locale={locale}
+          locale={widgetLocale}
           readOnly
         />
       ) : (
         <ConversationLedPanel
-          locale={locale}
+          locale={widgetLocale}
           profile={profile}
           profileDraft={profileDraft}
         />

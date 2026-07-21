@@ -1,4 +1,4 @@
-# PawLens MCP Server
+# PawLens Chat GPT Plugin
 
 [日本語版はこちら](README.ja.md)
 
@@ -48,13 +48,50 @@ The hard part was not producing an answer—it was making every answer safe, use
 
 PawLens was built and iterated with Codex / GPT-5.6: implementation, lint remediation, contract and regression tests, and release documentation. Codex feedback session ID: `019f8484-36e2-7b50-9ab2-901e6138d67a`.
 
+## System architecture
+
+```mermaid
+flowchart LR
+  User["Dog guardian"] --> ChatGPT["ChatGPT Developer Mode"]
+  ChatGPT -->|"Streamable HTTP /mcp"| Worker["Cloudflare Worker · Hono"]
+  Worker -->|"/health"| Health["Health response"]
+  Worker -->|"routes MCP session"| Session["Durable Object session"]
+  Session --> Runtime["MCP runtime"]
+
+  Runtime --> Tools["PawLens MCP tools"]
+  Tools --> Assess["Assessment service"]
+  Tools --> Profiles["Profile and observation services"]
+  Tools --> WidgetResource["Widget resource"]
+
+  Assess --> Evidence["Input and optional media adaptation"]
+  Assess --> Research["Contextual research guidance"]
+  Assess --> Guardrails["Schema validation and safety guardrails"]
+  Evidence --> Gateway["OpenAI Responses gateway"]
+  Research --> Gateway
+  Gateway -->|"strict JSON · store false"| GPT["OpenAI Responses API · GPT-5.6"]
+  GPT --> Guardrails
+
+  Profiles --> KV["Cloudflare KV"]
+  WidgetResource --> Assets["React widget static assets"]
+  Assets --> ChatGPT
+  Guardrails --> ChatGPT
+```
+
+The Worker owns MCP routing and session recovery. The Durable Object scopes an MCP session; Cloudflare KV stores profiles and owner-confirmed observations. The assessment path sends only the active request's optional media reference to the OpenAI Responses API, validates the strict structured response, and applies product guardrails before the widget receives it.
+
 ## Features
 
-- `analyze_dog_signal`: assess a behavior description and return a safe next step.
-- `get_dog_history`: retrieve recent saved observations.
-- `manage_dog_profile`: create or update a dog's profile.
-- `save_observation`: persist a user-confirmed observation.
-- `show_pawlens_hello`: render the PawLens ChatGPT widget.
+| Feature | Implementation | Current evidence / limitation |
+| --- | --- | --- |
+| PawLens widget | `show_pawlens_hello` returns the React MCP widget and can prefill profile context. | Verified in ChatGPT Developer Mode with the supplied widget screenshots. |
+| Dog profile | `manage_dog_profile` creates, updates, or confirmed-deletes a profile stored in Cloudflare KV. | Profile context is verified as rendered in the widget; deletion has not been demonstrated in the current ChatGPT flow. |
+| Behavioral assessment | `analyze_dog_signal` combines a factual description, situation, distance, optional media, research guidance, and confirmed observations. | Public real-model evaluations passed for normal, incomplete, and urgent cases. |
+| Structured, safe output | The Responses API uses strict JSON Schema; the Worker applies Zod validation, at most one repair attempt, and non-diagnostic/urgent-case guardrails. | Returns `success`, `partial`, `urgent`, or safe `error` states. |
+| Optional image and audio evidence | The tool accepts image and audio references; unavailable audio fails closed and the text description remains the fallback. | Image is optional. Direct audio depends on host capability and is not a required judge path. |
+| Owner-confirmed observation storage | `save_observation` is widget-only and rejects saving model hypotheses as owner facts. | Implemented and covered by tests, but the current ChatGPT connector reports that save controls are unavailable; do not expect persistence in the judge test. |
+| Same-conversation history comparison | `get_dog_history` compares saved, owner-confirmed observations only when a stable conversation can be verified. | Returns `unavailable` rather than inferring history from unsaved chat text. |
+| MCP session resilience | Streamable HTTP `/mcp` is routed through Durable Objects; resumed sessions use a recovery-safe transport. | Public initialization, tool discovery, and post-hibernation recovery are verified. |
+| Japanese and English UI | Host locale selects Japanese or English model and widget chrome. | Japanese Developer Mode screenshots are available; English is supported by the same contracts. |
 
 For the bilingual, step-by-step recording script and copy-ready demo prompts, see [the demo operation guide](docs/operation.md).
 
@@ -68,7 +105,7 @@ The assessment contract returns one of:
 
 | Surface | Status | Notes |
 | --- | --- | --- |
-| ChatGPT web, Developer Mode | Action required | Add the public MCP URL and record a widget-rendering check in the target account. |
+| ChatGPT web, Developer Mode | Verified with limitation | Widget rendering and profile display are recorded; owner-confirmed observation saving is currently unavailable in this connector. |
 | MCP Inspector / compatible clients | Supported | Uses Streamable HTTP at `/mcp`. |
 | Local development | Supported | Worker and widget run through the workspace scripts. |
 
@@ -77,7 +114,7 @@ The assessment contract returns one of:
 ### Prerequisites
 
 - Node.js 22+
-- pnpm 10+
+- pnpm 9.12.3+
 - A Cloudflare account for deployment
 - An `OPENAI_API_KEY` configured as a Worker secret for live assessments
 
@@ -128,7 +165,7 @@ Suggested prompt:
 
 > My dog barked quietly at the doorbell, stepped back about a meter, and became stiff. What should I do right now?
 
-**Current evidence status:** the public Worker health endpoint, MCP initialization, tool discovery, session-recovery behavior, and real-model assessments have been verified. A completed ChatGPT Developer Mode widget-rendering check has not yet been recorded, so it is intentionally marked Action required rather than passed.
+**Current evidence status:** public Worker health, MCP initialization, tool discovery, session recovery, real-model assessments, and ChatGPT Developer Mode widget rendering are verified. The current ChatGPT connector does not expose owner-confirmed observation saving, so persistence is intentionally not part of the judge flow.
 
 ## Public verification record
 
@@ -140,7 +177,7 @@ The public Worker deployment was verified at version `995bc305-3dde-4881-ac4c-e8
 | MCP initialize | Passed | Streamable HTTP initialization completed with protocol `2025-03-26`. |
 | Tool discovery | Passed | All five public tools are returned by `tools/list`. |
 | Durable Object recovery | Passed | An existing MCP session can list tools after a new Durable Object instance is created. |
-| ChatGPT Developer Mode widget | Action required | Needs a recorded in-product connection and render check. |
+| ChatGPT Developer Mode widget | Passed with limitation | Widget rendering and profile display are recorded; owner-confirmed observation saving is unavailable in the current connector. |
 
 ### Real-model evaluation
 

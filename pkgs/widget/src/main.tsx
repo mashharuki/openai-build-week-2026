@@ -18,6 +18,7 @@ declare global {
         redirectUrl?: boolean;
       }) => Promise<void> | void;
       locale?: string;
+      toolInput?: unknown;
       toolOutput?: unknown;
       sendFollowUpMessage?: (input: {
         prompt: string;

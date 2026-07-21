@@ -3,10 +3,7 @@ import type { AssessmentResult } from "@pawlens/shared";
 import { describe, expect, it, vi } from "vitest";
 
 import type { AssessmentService } from "../../src/assessment-service.js";
-import {
-  registerAnalyzeDogSignal,
-  resolveHostLocale,
-} from "../../src/mcp/analyze-dog-signal.js";
+import { registerAnalyzeDogSignal } from "../../src/mcp/analyze-dog-signal.js";
 import { HELLO_WIDGET_RESOURCE_URI } from "../../src/mcp/hello-widget.js";
 import { createConversationScope } from "../../src/repositories.js";
 
@@ -82,17 +79,8 @@ describe("registerAnalyzeDogSignal", () => {
     });
     expect(service.assess).toHaveBeenCalledWith(scope, {
       ...input,
-      locale: "en",
+      locale: "ja",
     });
     await expect(handler({ ...input, barkDescription: "" })).rejects.toThrow();
-  });
-
-  it.each([
-    [{ "openai/locale": "ja-JP" }, "ja"],
-    [{ "openai/locale": "en-GB" }, "en"],
-    [{ "webplus/i18n": "en" }, "en"],
-    [undefined, "ja"],
-  ] as const)("uses the host locale %o as %s", (meta, expected) => {
-    expect(resolveHostLocale(meta)).toBe(expected);
   });
 });
