@@ -2,9 +2,9 @@ import { StreamableHTTPTransport } from "@hono/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import type { Context } from "hono";
 
+import { probeAppsSdkCapabilities } from "../apps-sdk-capabilities.js";
 import { createAssessmentService } from "../assessment-service.js";
 import type { AssessmentService } from "../assessment-service.js";
-import { probeAppsSdkCapabilities } from "../apps-sdk-capabilities.js";
 import { probeAudioEvidence } from "../audio-evidence.js";
 import type { WorkerRuntimeDependencies } from "../env.js";
 import {
@@ -88,6 +88,7 @@ export function createRuntimeAssessmentService(
 export function createMcpRuntime(
   dependencies: WorkerRuntimeDependencies,
   scope = createConversationScope(),
+  statelessTransport = false,
 ): McpRuntime {
   const server = new McpServer(
     {
@@ -99,9 +100,9 @@ export function createMcpRuntime(
         "Use PawLens for calm, non-diagnostic dog-observation support. Open the PawLens widget to start. Create or update a profile only when the owner explicitly requests it; save observations only after owner confirmation. For urgent or worsening signs, direct the owner to a veterinarian rather than treating tool output as medical advice.",
     },
   );
-  const transport = new StreamableHTTPTransport({
-    sessionIdGenerator: () => scope,
-  });
+  const transport = new StreamableHTTPTransport(
+    statelessTransport ? undefined : { sessionIdGenerator: () => scope },
+  );
   const profiles = createProfileRepository({
     createId: () => crypto.randomUUID(),
     kv: dependencies.kv,

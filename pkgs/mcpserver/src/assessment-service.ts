@@ -13,9 +13,9 @@ import {
 import { applyGuardrails } from "./guardrails.js";
 import type { ObservationLogReader } from "./history-diff.js";
 import type { ModelAdapter, ModelCandidateResult } from "./model.js";
+import { addPresentationData } from "./presentation-data.js";
 import type { ConversationScope } from "./repositories.js";
 import { getResearchContext } from "./research-context.js";
-import { addPresentationData } from "./presentation-data.js";
 
 export type AssessmentResultKind = AssessmentResult["status"];
 export type AssessmentSchemaFailureKind =

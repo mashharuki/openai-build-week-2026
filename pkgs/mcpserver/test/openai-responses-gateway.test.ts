@@ -74,7 +74,7 @@ describe("OpenAI Responses gateway", () => {
       "https://api.openai.com/v1/responses",
       expect.objectContaining({ method: "POST" }),
     );
-    const request = fetch.mock.calls[0]![1];
+    const request = fetch.mock.calls[0]?.[1];
     if (!request) throw new Error("Responses request was not captured.");
     const body = JSON.parse(String(request.body));
     expect(body).toMatchObject({

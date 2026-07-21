@@ -6,8 +6,8 @@ import type {
   WorkerRuntimeDependencies,
 } from "./env.js";
 import { type McpRuntime, createMcpRuntime } from "./mcp/server.js";
-import { createConversationScope } from "./repositories.js";
 import { createOpenAiResponsesGateway } from "./openai-responses-gateway.js";
+import { createConversationScope } from "./repositories.js";
 
 export type { McpRuntime } from "./mcp/server.js";
 export type { ModelGateway, WorkerRuntimeDependencies } from "./env.js";
@@ -69,14 +69,14 @@ export class PawLensMcpSession {
       return new Response("Missing MCP session route.", { status: 400 });
 
     if (!this.runtime) {
-      if (request.headers.has("mcp-session-id")) {
-        // The DO was evicted or a deployment replaced it. MCP clients must
-        // reinitialize after this protocol-level session expiry.
-        return new Response("MCP session expired.", { status: 404 });
-      }
       this.runtime = createMcpRuntime(
         defaultDependencies.createWorkerDependencies(this.env),
         createConversationScope(() => scopeId),
+        // Durable Objects discard in-memory transport state when hibernated.
+        // A resumed MCP request still carries its opaque session ID, which we
+        // retain as the storage scope. A sessionless transport deliberately
+        // accepts that request so ChatGPT can continue after the DO wakes.
+        request.headers.has("mcp-session-id"),
       );
     }
 

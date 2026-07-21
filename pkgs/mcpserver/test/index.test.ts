@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   type McpRuntime,
+  PawLensMcpSession,
   type WorkerRuntimeDependencies,
   createApp,
 } from "../src/index.js";
@@ -147,12 +148,50 @@ describe("createApp", () => {
     expect(response.status).toBe(202);
     expect(getByName).toHaveBeenCalledWith("session-owner");
     expect(fetchSession).toHaveBeenCalledTimes(1);
-    const forwardedRequest = fetchSession.mock.calls[0]![0];
+    const forwardedRequest = fetchSession.mock.calls[0]?.[0];
+    if (!forwardedRequest) {
+      throw new Error("Session request was not forwarded.");
+    }
     expect(forwardedRequest.headers.get("mcp-session-id")).toBe(
       "session-owner",
     );
     expect(forwardedRequest.headers.get("x-pawlens-session-id")).toBe(
       "session-owner",
     );
+  });
+
+  it("休止後の Durable Object でも MCP セッションのツール呼び出しを再開する", async () => {
+    const resumedSession = new PawLensMcpSession({} as DurableObjectState, {
+      ASSETS: {
+        fetch: vi.fn(async () => new Response("<html></html>")),
+      } as unknown as Fetcher,
+      PAWLENS_KV: {
+        delete: vi.fn(),
+        get: vi.fn(async () => null),
+        put: vi.fn(),
+      } as unknown as KVNamespace,
+    });
+
+    const response = await resumedSession.fetch(
+      new Request("https://pawlens.example/mcp", {
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/list",
+          params: {},
+        }),
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json, text/event-stream",
+          "mcp-protocol-version": "2025-03-26",
+          "mcp-session-id": "resumed-session",
+          "x-pawlens-session-id": "resumed-session",
+        },
+        method: "POST",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    await expect(response.text()).resolves.toContain("analyze_dog_signal");
   });
 });
