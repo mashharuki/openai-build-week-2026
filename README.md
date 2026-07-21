@@ -8,6 +8,122 @@ PawLens は、犬の反応を飼い主の記述・状況・任意の画像から
 
 Released under the [MIT License](./LICENSE).
 
+## Built with Codex and GPT-5.6
+
+### GPT-5.6 in the product
+
+PawLens uses `gpt-5.6-sol` through the Responses API to turn an owner's
+factual description, optional image or audio evidence, the current situation,
+and confirmed observations from the same conversation into a structured
+observation guide. GPT-5.6 proposes possibilities, limitations, observation
+points, and one low-stimulation next action. It does not diagnose a medical or
+behavioral condition, assign an emotion as fact, or save a model-generated
+hypothesis as an owner-confirmed observation.
+
+The application—not the model alone—enforces the product contract: strict JSON
+Schema output, one bounded repair attempt, input and media validation,
+research-context boundaries, post-generation safety guardrails, urgent-case
+escalation, and an owner-confirmation step before any observation is stored.
+
+### How we collaborated with Codex
+
+Codex accelerated the implementation and review of the Cloudflare Worker MCP
+server, React widget, MCP Apps bridge, structured Responses API gateway,
+conversation-scoped storage, safety guardrails, and test coverage. It also
+helped diagnose a production issue where a hibernated Durable Object lost its
+in-memory MCP transport state; the fix preserves the opaque MCP session ID as
+the storage scope and safely resumes tool calls with a stateless transport.
+
+Human decisions remained responsible for the product boundaries: positioning
+PawLens as observation support rather than diagnosis, defining the safety and
+privacy rules, selecting the demo scenarios, approving the deployment, and
+reviewing every submission claim against observed evidence.
+
+### Evidence and limitations
+
+- **Codex Session ID:** `019f8484-36e2-7b50-9ab2-901e6138d67a`
+- **Hackathon-period evidence:** dated commits from 2026-07-16 through
+  2026-07-21 document the implementation work.
+- **Runtime evidence:** the public Worker checks and real-model release
+  evaluations below were run against the deployed endpoint on 2026-07-21.
+- **Reliability limits:** model outputs are provisional and can vary between
+  runs. Audio remains optional and is used only when the host supplies a
+  supported, temporary file reference. PawLens is educational observation
+  support, not veterinary, behavioral, or emergency diagnosis.
+
+## Devpost submission copy
+
+### Elevator pitch
+
+> Turn “something feels different” into calm, observable next steps for your dog.
+
+### About the project
+
+#### Inspiration
+
+Dog owners often notice a bark, a retreat, or a stiff posture but are left
+with an unhelpful binary: dismiss it or search for a diagnosis. PawLens was
+inspired by the need for a calmer middle ground. It does not claim to
+translate a dog's inner state. Instead, it helps an owner separate what they
+actually observed from what remains uncertain, then choose one safe thing to
+watch or do next.
+
+#### What it does
+
+In a ChatGPT conversation, an owner describes a reaction and can add optional
+image or supported audio evidence. PawLens returns a structured card with a
+provisional primary possibility, confidence, evidence boundaries, specific
+observation points, and a low-stimulation action. For concerning patterns, it
+prioritizes distance, a quiet space, and veterinary escalation rather than
+false reassurance. Owners can save only cues they personally confirm, so the
+history is not polluted by model guesses.
+
+#### How we built it
+
+PawLens is a TypeScript ChatGPT App: a React widget is served from a
+Cloudflare Worker, while an MCP server exposes the focused tool set. The
+Responses API calls `gpt-5.6-sol` with strict JSON Schema output. The server
+adds research context, validates media references, bounds repair attempts,
+applies guardrails after generation, and stores confirmed observations in
+Cloudflare KV. Durable Objects route MCP sessions so a conversation's storage
+scope is isolated. The project is covered by automated tests and release
+checks against the deployed Worker.
+
+#### What we learned and the challenges we faced
+
+The central lesson was that a safe AI experience is more than a careful
+prompt. The useful product boundary is visible in the data model and UI:
+provisional hypotheses are distinct from owner-confirmed observations, and
+urgent guidance takes precedence over an elegant explanation.
+
+The hardest production issue was MCP session continuity. A hibernated Durable
+Object loses its in-memory transport state, which initially caused an existing
+MCP session to expire. We fixed this by retaining the opaque session ID as the
+conversation storage scope and accepting a resumed request with a stateless
+transport. A regression test now covers that recovery path.
+
+### Built with
+
+`ChatGPT Apps` · `Model Context Protocol (MCP)` · `OpenAI Responses API` ·
+`GPT-5.6` · `Codex` · `Cloudflare Workers` · `Cloudflare Durable Objects` ·
+`Cloudflare KV` · `React` · `TypeScript` · `Hono` · `Vite` · `Vitest` ·
+`JSON Schema` · `Zod`
+
+### Installation, supported platform, and testing
+
+| Item | Details |
+| --- | --- |
+| Live MCP endpoint | `https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/mcp` |
+| Supported platform | ChatGPT with Developer Mode and a current desktop browser. |
+| Test account | No PawLens account or credential is required. The tester needs access to ChatGPT Developer Mode. |
+| Local build | `pnpm install && pnpm run build && pnpm test` |
+| Local server | `pnpm --filter @pawlens/mcpserver dev` then connect `http://127.0.0.1:8787/mcp` with MCP Inspector. |
+| Production test setup | Add the live endpoint as a Developer Mode app in ChatGPT, then open a new conversation. |
+| Sample prompt | `Open PawLens. My dog barked twice after the doorbell, stepped back about one meter, and looked stiff. Without diagnosing, organize what I can observe next and one calm action for tonight.` |
+| Expected result | A PawLens card with provisional possibilities, confidence, evidence limits, observation points, and a low-stimulation action. |
+| Reset | Start a new ChatGPT conversation. Confirmed observations remain scoped to their original MCP session. |
+| Known limits | Developer Mode widget rendering is still marked as an action-required verification in this README. Audio is optional and fails closed when the host cannot provide a supported temporary reference. |
+
 ## Submission verification (English)
 
 **Production MCP URL:** `https://pawlens-mcpserver.avp-104-106-107-a78.workers.dev/mcp`
